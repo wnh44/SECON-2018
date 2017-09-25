@@ -13,12 +13,12 @@ class ArduinoSerial():
 
     """
     setPinMode(pinNumber, mode)
-        - sets the pin mode (mode) for a digital pin (pinNumber)
-        - I=INPUT, O=OUTPUT, P=INPUT_PULLUP
-        - message sent across serial connection resembles the following examples:
-          MI2
-          MO8
-          MP12
+    - sets the pin mode (mode) for a digital pin (pinNumber)
+    - I=INPUT, O=OUTPUT, P=INPUT_PULLUP
+    - message sent across serial connection resembles the following examples:
+        MI2
+        MO8
+        MP12
     """
     def setPinMode(self, pinNumber, mode):
         message = ''.join(('M', mode, str(pinNumber)))
@@ -26,10 +26,10 @@ class ArduinoSerial():
 
     """
     digitalRead(pinNumber)
-        - reads a value (readValue) from a digital pin (pinNumber)
-        - message sent across serial connection resembles the following examples:
-          RD3
-          RD12
+    - reads a value (readValue) from a digital pin (pinNumber)
+    - message sent across serial connection resembles the following examples:
+        RD3
+        RD12
     """
     def digitalRead(self, pinNumber):
         message = ''.join(('R', 'D', str(pinNumber)))
@@ -39,10 +39,10 @@ class ArduinoSerial():
     
     """
     digitalWrite(pinNumber, writeValue)
-        - writes a value (writeValue) to a digital pin (pinNumber)
-        - message sent across serial connection resembles the following examples:
-          WD4:1
-          WD11:0
+    - writes a value (writeValue) to a digital pin (pinNumber)
+    - message sent across serial connection resembles the following examples:
+        WD4:1
+        WD11:0
     """
     def digitalWrite(self, pinNumber, writeValue):
         message = ''.join(('W', 'D', str(pinNumber), ':', str(writeValue)))
@@ -50,11 +50,11 @@ class ArduinoSerial():
     
     """
     analogRead(pinNumber)
-        - reads a value (readValue) from an analog pin (pinNumber)
-        - D(readValue) = [0,1023]
-        - message sent across serial connection resembles the following examples:
-          RA5
-          RA0
+    - reads a value (readValue) from an analog pin (pinNumber)
+    - D(readValue) = [0,1023]
+    - message sent across serial connection resembles the following examples:
+        RA5
+        RA0
     """
     def analogRead(self, pinNumber):
         message = ''.join(('R', 'A', str(pinNumber)))
@@ -64,11 +64,11 @@ class ArduinoSerial():
     
     """
     analogWrite(pinNumber, writeValue)
-        - writes a value (writeValue) to an analog pin (pinNumber)
-        - D(writeValue) = [0,1023]
-        - message sent across serial connection resembles the following examples:
-          WA2:256
-          WA5:1020
+    - writes a value (writeValue) to an analog pin (pinNumber)
+    - D(writeValue) = [0,1023]
+    - message sent across serial connection resembles the following examples:
+        WA2:256
+        WA5:1020
     """
     def analogWrite(self, pinNumber, writeValue):
         message = ''.join(('W', 'A', str(pinNumber), ':', str(writeValue)))
@@ -76,7 +76,7 @@ class ArduinoSerial():
     
     """
     close()
-        - closes serial connection with the arduino
+    - closes serial connection with the arduino
     """
     def close(self):
         self.conn.close()
