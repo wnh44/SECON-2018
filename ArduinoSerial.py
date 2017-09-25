@@ -58,7 +58,7 @@ class ArduinoSerial():
     """
     def analogRead(self, pinNumber):
         message = (''.join(('R', 'A', str(pinNumber)))).encode()
-        print(message)
+        #print(message)
         self.conn.write(message)#.encode())
         readValue = int(self.conn.readline().decode().strip(), 16)
         return readValue

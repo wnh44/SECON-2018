@@ -4,7 +4,7 @@ int pinNumber;
 int digitalValue;
 int analogValue;
 int writeValue;
-int pause;
+int pause = 5;
 
 /* 
  *  Serial data is received in the following manner:
@@ -23,7 +23,6 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(100);
   pinMode(4, OUTPUT);
-  digitalWrite(4, 0);
 }
 
 void pinModeLocal(int pinNumber, char mode) {
@@ -60,6 +59,7 @@ void analogWriteLocal(int pinNumber, int analogValue) {
 }
 
 void loop() {
+  digitalWrite(4, 0);
   if(Serial.available() > 0) {
     operation = Serial.read();
     delay(pause);

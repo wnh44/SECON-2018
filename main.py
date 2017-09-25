@@ -1,9 +1,10 @@
 from ArduinoSerial import *
 import time
 
+Arduino = ArduinoSerial()
+time.sleep(2)
+
 while True:
-    Arduino = ArduinoSerial()
-    time.sleep(1)
     distance = Arduino.analogRead(0)
     print(distance)
-    #time.sleep(0.05)
+    time.sleep(0.05)
