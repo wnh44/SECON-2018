@@ -22,6 +22,8 @@ int pause;
 void setup() {
   Serial.begin(9600);
   Serial.setTimeout(100);
+  pinMode(4, OUTPUT);
+  digitalWrite(4, 0);
 }
 
 void pinModeLocal(int pinNumber, char mode) {
@@ -48,12 +50,13 @@ void digitalWriteLocal(int pinNumber, int digitalValue) {
 }
 
 void analogReadLocal(int pinNumber) {
-  analogValue = analogRead(pinNumber);
+  int temp = A0;
+  analogValue = analogRead(temp);
   Serial.println(analogValue);
 }
 
 void analogWriteLocal(int pinNumber, int analogValue) {
-  analogWrite(pinNumber, analogWrite);
+  analogWrite(pinNumber, analogValue);
 }
 
 void loop() {
@@ -70,6 +73,7 @@ void loop() {
         if (mode == 'D') {
           digitalReadLocal(pinNumber);
         } else if (mode == 'A') {
+          digitalWrite(4, 1);
           analogReadLocal(pinNumber);
         } else {
           break;
