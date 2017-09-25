@@ -7,8 +7,8 @@ Description: ArduinoSerial is a class that handles serial communication between
 import serial
 
 class ArduinoSerial():
-    def __init__(self, serialPort = '/edv/ttyACM0', baud_rate=9600, read_timeout=5):
-        self.conn = serial.Serial(serial_port, baud_rate)
+    def __init__(self, serialPort = '/dev/ttyACM0', baud_rate=9600, read_timeout=5):
+        self.conn = serial.Serial(serialPort, baud_rate)
         self.conn.timeout = read_timeout
 
     """
@@ -21,7 +21,7 @@ class ArduinoSerial():
           MP12
     """
     def setPinMode(self, pinNumber, mode):
-        message = ''.join('M', mode, str(pinNumber))
+        message = ''.join(('M', mode, str(pinNumber)))
         self.conn.write(message.encode())
 
     """
@@ -32,7 +32,7 @@ class ArduinoSerial():
           RD12
     """
     def digitalRead(self, pinNumber):
-        message = ''.join('R', 'D', str(pinNumber))
+        message = ''.join(('R', 'D', str(pinNumber)))
         self.conn.write(message.encode())
         readValue = self.conn.readline().decode().strip()
         return readValue
@@ -45,7 +45,7 @@ class ArduinoSerial():
           WD11:0
     """
     def digitalWrite(self, pinNumber, writeValue):
-        message = ''.join('W', 'D', pinNumber, ':', writeValue)
+        message = ''.join(('W', 'D', str(pinNumber), ':', str(writeValue)))
         self.conn.write(message.encode())
     
     """
@@ -57,9 +57,9 @@ class ArduinoSerial():
           RA0
     """
     def analogRead(self, pinNumber):
-        message = ''.join('R', 'A', pinNumber)
+        message = ''.join(('R', 'A', str(pinNumber)))
         self.conn.write(message.encode())
-        readValue = self.conn.readline().decode().strip()
+        readValue = int(self.conn.readline().decode().strip(), 16)
         return readValue
     
     """
@@ -71,7 +71,7 @@ class ArduinoSerial():
           WA5:1020
     """
     def analogWrite(self, pinNumber, writeValue):
-        message = ''.join('W', 'A', pinNumber, ':', writeValue)
+        message = ''.join(('W', 'A', str(pinNumber), ':', str(writeValue)))
         self.conn.write(message.encode())
     
     """

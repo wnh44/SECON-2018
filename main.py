@@ -1,9 +1,8 @@
-import serial
-
-ser = serial.Serial('/dev/ttyACM0', 9600)
-s = [0]
+from ArduinoSerial import *
+import time
 
 while True:
-    read_serial = ser.readline()
-    s[0] = str(int (ser.readline(), 16))
-    print(s[0])
+    Arduino = ArduinoSerial()
+    distance = Arduino.analogRead(0)
+    print(distance)
+    time.sleep(0.05)
