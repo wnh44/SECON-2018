@@ -1,5 +1,6 @@
 char operation;
 char mode;
+char type;
 int pinNumber;
 int digitalValue;
 int analogValue;
@@ -25,7 +26,13 @@ void setup() {
   pinMode(4, OUTPUT);
 }
 
-void pinModeLocal(int pinNumber, char mode) {
+void pinModeLocal(int pinNumber, char type, char mode) {
+  char pinNum;
+  if(type == 'A') {
+    pinNum = 'A' + pinNumber;
+  } else {
+    pinNum = pinNumber;
+  }
   switch(mode){
     case 'I':
       pinMode(pinNumber, INPUT);
@@ -49,8 +56,7 @@ void digitalWriteLocal(int pinNumber, int digitalValue) {
 }
 
 void analogReadLocal(int pinNumber) {
-  int temp = A0;
-  analogValue = analogRead(temp);
+  analogValue = analogRead(pinNumber);
   Serial.println(analogValue);
 }
 
@@ -64,6 +70,9 @@ void loop() {
     operation = Serial.read();
     delay(pause);
     mode = Serial.read();
+    if(mode == 'M') {
+      type = Serial.read();
+    }
     pinNumber = Serial.parseInt();
     if(Serial.read() == ':') {
       writeValue = Serial.parseInt();
@@ -91,7 +100,7 @@ void loop() {
         break;
 
       case 'M':
-        pinModeLocal(pinNumber, mode);
+        pinModeLocal(pinNumber,type, mode);
         break;
 
       default:

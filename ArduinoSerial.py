@@ -20,8 +20,8 @@ class ArduinoSerial():
         MO8
         MP12
     """
-    def setPinMode(self, pinNumber, mode):
-        message = ''.join(('M', mode, str(pinNumber)))
+    def setPinMode(self, type, pinNumber, mode):
+        message = ''.join(('M', mode, type, str(pinNumber)))
         self.conn.write(message.encode())
 
     """
@@ -34,7 +34,7 @@ class ArduinoSerial():
     def digitalRead(self, pinNumber):
         message = ''.join(('R', 'D', str(pinNumber)))
         self.conn.write(message.encode())
-        readValue = self.conn.readline().decode().strip()
+        readValue = int(self.conn.readline().decode().strip())
         return readValue
     
     """
