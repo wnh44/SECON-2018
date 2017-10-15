@@ -9,7 +9,7 @@ int pause = 5;
 
 /* 
  *  Serial data is received in the following manner:
- *     operation mode pinNumber : writeValue
+ *     {operation}{mode}{pinNumber}{:}{writeValue
  * 
  *  Examples:
  *     Set Pin Mode:  MI4
@@ -65,14 +65,15 @@ void analogWriteLocal(int pinNumber, int analogValue) {
 }
 
 void loop() {
+  // FIXME: Update with motor control and quantity
   digitalWrite(4, 0);
   if(Serial.available() > 0) {
     operation = Serial.read();
     delay(pause);
     mode = Serial.read();
-    if(mode == 'M') {
+    /*if(mode == 'M') {
       type = Serial.read();
-    }
+    }*/
     pinNumber = Serial.parseInt();
     if(Serial.read() == ':') {
       writeValue = Serial.parseInt();

@@ -2,8 +2,52 @@
 Filename: ArduinoSerial.py
 Description: ArduinoSerial is a class that handles serial communication between
     the raspberry pi and the arduino.
-"""
 
+
+Serial data is received in the following manner:
+
+	{operation}{mode}{number}{:}{quantity}{:}{value}
+	
+	{operation}
+		M: Set motor speed
+		P: Set pin mode
+		R: Read value
+		W: Write value
+		
+	{mode}
+		A: Analog
+		D: Digital
+		I: INPUT
+		O: OUTPUT
+		P: INPUT_PULLUP
+		
+	{number}
+		If M: Motor number to set.
+		If P: N/A
+		If R: Pin number to read from.
+		If W: Pin number to write to.
+		
+	{quantity}
+		If M: Number of (sequential) motors to set.
+		If P: N/A
+		If R: Number of (sequential) inputs to read.
+		If W: N/A
+		
+	{value}
+		If M: Motor speed to set.
+		If P: N/A
+		If R: N/A
+		If W: Value to write.
+	
+	Examples:
+		Set Pin Mode:  MI4
+		Digital Read:  DR7
+		Digital Write: DW4:0
+		Analog Read:   AR4
+		Analog Write:  AW0:759
+
+ """
+ 
 import serial
 
 class ArduinoSerial():
@@ -25,16 +69,22 @@ class ArduinoSerial():
         self.conn.write(message.encode())
 
     """
-    digitalRead(pinNumber)
-    - reads a value (readValue) from a digital pin (pinNumber)
+    digitalRead(pinNumber, quantity)
+    - reads a number (quantity) of sequential digital values (readValues) starting 
+	  at pin (pinNumber)
+	- D(readValue) = [0, 1]
     - message sent across serial connection resembles the following examples:
         RD3
         RD12
     """
-    def digitalRead(self, pinNumber):
-        message = ''.join(('R', 'D', str(pinNumber)))
+    def digitalRead(self, pinNumber, quantity):
+		readValues = []
+        message = ''.join(('R', 'D', str(pinNumber), ':', str(quantity)))
         self.conn.write(message.encode())
-        readValue = int(self.conn.readline().decode().strip())
+		while(quantity > 0)
+			readValue = int(self.conn.readline().decode().strip(), 10)
+			readValues.append(readValue)
+			quantity -= 1
         return readValue
     
     """
@@ -49,19 +99,24 @@ class ArduinoSerial():
         self.conn.write(message.encode())
     
     """
-    analogRead(pinNumber)
-    - reads a value (readValue) from an analog pin (pinNumber)
+    analogRead(pinNumber, quantity)
+    - reads a number (quantity) of sequential analog values (readValues) starting 
+	  at pin (pinNumber)
     - D(readValue) = [0,1023]
     - message sent across serial connection resembles the following examples:
-        RA5
-        RA0
+        RA5:1
+        RA0:5
     """
-    def analogRead(self, pinNumber):
-        message = (''.join(('R', 'A', str(pinNumber)))).encode()
+    def analogRead(self, pinNumber, quantity):
+		readValues = []
+        message = (''.join(('R', 'A', str(pinNumber), ':', str(quantity))))
         #print(message)
-        self.conn.write(message)#.encode())
-        readValue = int(self.conn.readline().decode().strip(), 16)
-        return readValue
+        self.conn.write(message.encode())
+		while(quantity > 0)
+			readValue = int(self.conn.readline().decode().strip(), 10)
+			readValues.append(readValue)
+			quantity -= 1
+        return readValues
     
     """
     analogWrite(pinNumber, writeValue)
