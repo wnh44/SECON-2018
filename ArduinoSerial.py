@@ -4,7 +4,7 @@ Description: ArduinoSerial is a class that handles serial communication between
     the raspberry pi and the arduino.
 
 
-Serial data is received in the following manner:
+Serial data is sent in the following manner:
 
 	{operation}{mode}{number}{:}{quantity}{:}{value}
 	
