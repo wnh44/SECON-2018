@@ -40,10 +40,10 @@ Serial data is sent in the following manner:
 		If W: Value to write.
 	
 	Examples:
-		Set Pin Mode:  MI4
-		Digital Read:  DR7
+		Set Pin Mode:  PI4
+		Digital Read:  DR7:3
 		Digital Write: DW4:0
-		Analog Read:   AR4
+		Analog Read:   AR4:0
 		Analog Write:  AW0:759
 
  """
