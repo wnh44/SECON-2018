@@ -1,24 +1,50 @@
-char operation;
-char mode;
-char type;
-int pinNumber;
-int digitalValue;
-int analogValue;
-int writeValue;
-int pause = 5;
-
-/* 
- *  Serial data is received in the following manner:
- *     {operation}{mode}{pinNumber}{:}{writeValue
+/*
+ * Serial data is sent in the following manner:
+ *
+ * {operation}{mode}{number}{:}{quantity}{:}{value}
  * 
- *  Examples:
- *     Set Pin Mode:  MI4
- *     Digital Read:  DR7
- *     Digital Write: DW4:0
- *     Analog Read:   AR4
- *     Analog Write:  AW0:759
+ * {operation}
+ *   M: Set motor speed
+ *   P: Set pin mode
+ *   R: Read value
+ *   W: Write value
+ *   
+ * {mode}
+ *   A: Analog
+ *   D: Digital
+ *   I: INPUT
+ *   O: OUTPUT
+ *   P: INPUT_PULLUP
+ *   
+ * {number}
+ *   If M: Motor number to set.
+ *   If P: N/A
+ *   If R: Pin number to read from.
+ *   If W: Pin number to write to.
+ *   
+ * {quantity}
+ *   If M: Number of (sequential) motors to set.
+ *   If P: N/A
+ *   If R: Number of (sequential) inputs to read.
+ *   If W: N/A
+ *   
+ * {value}
+ *   If M: Motor speed to set.
+ *   If P: N/A
+ *   If R: N/A
+ *   If W: Value to write.
  * 
+ * Examples:
+ *   Set Pin Mode:  PI4
+ *   Digital Read:  DR7:3
+ *   Digital Write: DW4:0
+ *   Analog Read:   AR4:0
+ *   Analog Write:  AW0:759
  */
+
+char operation, mode, type;
+int pinNumber, digitalValue, analogValue, writeValue;
+int pause = 5;
 
 void setup() {
   Serial.begin(9600);
