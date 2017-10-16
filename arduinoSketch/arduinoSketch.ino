@@ -114,7 +114,7 @@ void loop() {
           break;
         }
         break;
-        s
+        
       case 'W':
         if (mode == 'D') {
           digitalWriteLocal(pinNumber, writeValue);
