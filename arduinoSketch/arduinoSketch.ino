@@ -66,14 +66,13 @@ void analogWriteLocal(int pinNumber, int analogValue) {
 
 void loop() {
   // FIXME: Update with motor control and quantity
-  digitalWrite(4, 0);
   if(Serial.available() > 0) {
     operation = Serial.read();
     delay(pause);
     mode = Serial.read();
-    /*if(mode == 'M') {
+    if(operation == 'M') {
       type = Serial.read();
-    }*/
+    }
     pinNumber = Serial.parseInt();
     if(Serial.read() == ':') {
       writeValue = Serial.parseInt();
@@ -89,7 +88,7 @@ void loop() {
           break;
         }
         break;
-        
+        s
       case 'W':
         if (mode == 'D') {
           digitalWriteLocal(pinNumber, writeValue);
