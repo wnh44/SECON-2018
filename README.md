@@ -3,10 +3,4 @@
 
 Team Lead: Jackson Forster
 
-Team Members: Aaron Barr
-
-			  Blake Waites
-
-			  Boss Shell
-
-			  Matt Lander
+Team Members: Aaron Barr, Blake Waites, Boss Shell, Matt Lander
