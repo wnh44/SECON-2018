@@ -1,136 +1,147 @@
 /*
- * Serial data is sent in the following manner:
+ *  Serial data is sent in the following manner:
  *
- * {operation}{mode}{number}{:}{quantity}{:}{value}
+ *  {operation}{mode}{number}{:}{quantity}{:}{value}
  * 
- * {operation}
- *   M: Set motor speed
- *   P: Set pin mode
- *   R: Read value
- *   W: Write value
- *   
- * {mode}
- *   A: Analog
- *   D: Digital
- *   I: INPUT
- *   O: OUTPUT
- *   P: INPUT_PULLUP
- *   
- * {number}
- *   If M: Motor number to set.
- *   If P: N/A
- *   If R: Pin number to read from.
- *   If W: Pin number to write to.
- *   
- * {quantity}
- *   If M: Number of (sequential) motors to set.
- *   If P: N/A
- *   If R: Number of (sequential) inputs to read.
- *   If W: N/A
- *   
- * {value}
- *   If M: Motor speed to set.
- *   If P: N/A
- *   If R: N/A
- *   If W: Value to write.
- * 
- * Examples:
- *   Set Pin Mode:  PI4
- *   Digital Read:  DR7:3
- *   Digital Write: DW4:0
- *   Analog Read:   AR4:0
- *   Analog Write:  AW0:759
+ *  {operation}
+ *    M: Set motor speed
+ *    P: Set pin mode
+ *    R: Read value
+ *    W: Write value
+ *    
+ *  {mode}
+ *    A: Analog
+ *    D: Digital
+ *    I: INPUT
+ *    O: OUTPUT
+ *    P: INPUT_PULLUP
+ *    
+ *  {number}
+ *    If M: Motor number to set.
+ *    If P: N/A
+ *    If R: Pin number to read from.
+ *    If W: Pin number to write to.
+ *    
+ *  {quantity}
+ *    If M: Number of (sequential) motors to set.
+ *    If P: N/A
+ *    If R: Number of (sequential) inputs to read.
+ *    If W: N/A
+ *    
+ *  {value}
+ *    If M: Motor speed to set.
+ *    If P: N/A
+ *    If R: N/A
+ *    If W: Value to write.
+ *  
+ *  Examples:
+ *    Set Pin Mode:  PI4
+ *    Digital Read:  DR7:3
+ *    Digital Write: DW4:0
+ *    Analog Read:   AR4:0
+ *    Analog Write:  AW0:759
  */
 
-char operation, mode, type;
-int pinNumber, digitalValue, analogValue, writeValue;
+#include <Wire.h>
+#include "utility/Adafruit_MotorShield.h"
+#include "utility/Adafruit_MS_PWMServoDriver.h"
+
+char operation, mode;
+int index, quantity, value;
+
+int digitalValue, analogValue;
 int pause = 5;
 
 void setup() {
-  Serial.begin(9600);
-  Serial.setTimeout(100);
-  pinMode(4, OUTPUT);
+    Serial.begin(9600);
+    Serial.setTimeout(100);
+    pinMode(4, OUTPUT);
 }
 
-void pinModeLocal(int pinNumber, char type, char mode) {
-  char pinNum;
-  if(type == 'A') {
-    pinNum = 'A' + pinNumber;
-  } else {
-    pinNum = pinNumber;
-  }
-  switch(mode){
-    case 'I':
-      pinMode(pinNumber, INPUT);
-      break;
-    case 'O':
-      pinMode(pinNumber, OUTPUT);
-      break;
-    case 'P':
-      pinMode(pinNumber, INPUT_PULLUP);
-      break;
-  }
+void pinModeLocal(int pinNumber, char mode) {
+    switch(mode){
+        case 'I':
+            pinMode(pinNumber, INPUT);
+            break;
+        case 'O':
+            pinMode(pinNumber, OUTPUT);
+            break;
+        case 'P':
+            pinMode(pinNumber, INPUT_PULLUP);
+            break;
+    }
 }
 
-void digitalReadLocal(int pinNumber) {
-  digitalValue = digitalRead(pinNumber);
-  Serial.println(digitalValue);
+void digitalReadLocal(int pinNumber, int quantity) {
+    digitalValue = digitalRead(pinNumber);
+    Serial.println(digitalValue);
 }
 
 void digitalWriteLocal(int pinNumber, int digitalValue) {
-  digitalWrite(pinNumber, digitalValue);
+    digitalWrite(pinNumber, digitalValue);
 }
 
-void analogReadLocal(int pinNumber) {
-  analogValue = analogRead(pinNumber);
-  Serial.println(analogValue);
+void analogReadLocal(int pinNumber, int quantity) {
+    analogValue = analogRead(pinNumber);
+    Serial.println(analogValue);
 }
 
 void analogWriteLocal(int pinNumber, int analogValue) {
-  analogWrite(pinNumber, analogValue);
+    analogWrite(pinNumber, analogValue);
+}
+
+void setMotorSpeedLocal(char mode, int motorNumber, int quantity, int value) {
+    // FIXME
 }
 
 void loop() {
-  // FIXME: Update with motor control and quantity
-  if(Serial.available() > 0) {
-    operation = Serial.read();
-    delay(pause);
-    mode = Serial.read();
-    if(operation == 'M') {
-      type = Serial.read();
-    }
-    pinNumber = Serial.parseInt();
-    if(Serial.read() == ':') {
-      writeValue = Serial.parseInt();
-    }
-    switch(operation) {
-      case 'R':
-        if (mode == 'D') {
-          digitalReadLocal(pinNumber);
-        } else if (mode == 'A') {
-          digitalWrite(4, 1);
-          analogReadLocal(pinNumber);
-        } else {
-          break;
+    if (Serial.available() > 0) {
+        operation = Serial.read();
+        delay(pause); // May be necessary elsewhere
+        mode = Serial.read();
+        index = Serial.parseInt();
+        if (Serial.read() == ':') {
+            if (operation == 'W') {
+                value = Serial.parseInt();
+            } else {
+                quantity = Serial.parseInt();
+            }
+            if (operation == 'M') {
+                value = Serial.parseInt();
+            }
         }
-        break;
         
-      case 'W':
-        if (mode == 'D') {
-          digitalWriteLocal(pinNumber, writeValue);
-        } else if (mode == 'A') {
-          analogWriteLocal(pinNumber, writeValue);
-        } else {
-          break;
+        switch(operation) {
+            case 'M':
+                setMotorSpeedLocal(mode, index, quantity, value);
+                break;
+      
+            case 'P':
+                pinModeLocal(index, mode);
+                break;
+                
+            case 'R':
+                if (mode == 'D') {
+                    digitalReadLocal(index, quantity);
+                } else if (mode == 'A') {
+                    analogReadLocal(index, quantity);
+                } else {
+                    break;
+                }
+                break;
+              
+            case 'W':
+                if (mode == 'D') {
+                    digitalWriteLocal(index, value);
+                } else if (mode == 'A') {
+                    analogWriteLocal(index, value);
+                } else {
+                    break;
+                }
+                break;
+      
+            default:
+                break;
         }
-        break;
-
-      case 'M':
-        pinModeLocal(pinNumber,type, mode);
-        break;
-
-      default:
-        break;
     }
-  }
 }

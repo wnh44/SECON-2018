@@ -6,7 +6,7 @@ Description: ArduinoSerial is a class that handles serial communication between
 
 Serial data is sent in the following manner:
 
-	{operation}{mode}{number}{:}{quantity}{:}{value}
+	{operation}{mode}{index}{':'}{quantity}{':'}{value}{'/n'}
 	
 	{operation}
 		M: Set motor speed
@@ -21,9 +21,9 @@ Serial data is sent in the following manner:
 		O: OUTPUT
 		P: INPUT_PULLUP
 		
-	{number}
+	{index}
 		If M: Motor number to set.
-		If P: N/A
+		If P: Pin number to set mode of.
 		If R: Pin number to read from.
 		If W: Pin number to write to.
 		
