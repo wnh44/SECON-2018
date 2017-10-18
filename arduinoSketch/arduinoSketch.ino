@@ -73,7 +73,12 @@ void pinModeLocal(int pinNumber, char mode) {
 }
 
 void digitalReadLocal(int pinNumber, int quantity) {
-    digitalValue = digitalRead(pinNumber);
+    for (int i = 0; i < quantity - 1; i++) {
+        digitalValue = digitalRead(pinNumber + i);
+        Serial.print(digitalValue);
+        Serial.print(':');
+    }
+    digitalValue = digitalRead(pinNumber + quantity - 1);
     Serial.println(digitalValue);
 }
 
@@ -82,7 +87,12 @@ void digitalWriteLocal(int pinNumber, int digitalValue) {
 }
 
 void analogReadLocal(int pinNumber, int quantity) {
-    analogValue = analogRead(pinNumber);
+    for (int i = 0; i < quantity - 1; i++) {
+        analogValue = analogRead(pinNumber);
+        Serial.print(analogValue);
+        Serial.print(':');
+    }
+    analogValue = analogRead(pinNumber + quantity - 1);
     Serial.println(analogValue);
 }
 
