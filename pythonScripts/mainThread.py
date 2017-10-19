@@ -1,7 +1,8 @@
 from threading import *
 import time
 
-class mainThread(Thread):
+
+class MainThread(Thread):
     def __init__(self, val = 10):
         Thread.__init__(self)
         self.val = val

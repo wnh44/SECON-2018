@@ -1,7 +1,5 @@
 from threading import Thread
 import time
-from testThread import *
-from testThread1 import *
 from ArduinoSerial import *
 
 Arduino = ArduinoSerial()
