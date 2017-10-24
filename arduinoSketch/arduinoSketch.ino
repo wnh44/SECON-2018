@@ -1,46 +1,3 @@
-/*
- *  Serial data is sent in the following manner:
- *
- *  {operation}{mode}{number}{:}{quantity}{:}{value}
- * 
- *  {operation}
- *    M: Set motor speed
- *    P: Set pin mode
- *    R: Read value
- *    W: Write value
- *    
- *  {mode}
- *    A: Analog
- *    D: Digital
- *    I: INPUT
- *    O: OUTPUT
- *    P: INPUT_PULLUP
- *    
- *  {number}
- *    If M: Motor number to set.
- *    If P: N/A
- *    If R: Pin number to read from.
- *    If W: Pin number to write to.
- *    
- *  {quantity}
- *    If M: Number of (sequential) motors to set.
- *    If P: N/A
- *    If R: Number of (sequential) inputs to read.
- *    If W: N/A
- *    
- *  {value}
- *    If M: Motor speed to set.
- *    If P: N/A
- *    If R: N/A
- *    If W: Value to write.
- *  
- *  Examples:
- *    Set Pin Mode:  PI4
- *    Digital Read:  DR7:3
- *    Digital Write: DW4:0
- *    Analog Read:   AR4:0
- *    Analog Write:  AW0:759
- */
 
 ///////////////
 // Libraries //
@@ -378,6 +335,60 @@ void motor3_encoder_ISR() {
     }
 }
 
+
+////////////////////////////////////
+// Serial Communication Functions //
+////////////////////////////////////
+
+/*
+ *  Serial data is sent and received in the following manner:
+ *
+ *  {operation}{mode}{number}{:}{quantity}{:}{value}
+ * 
+ *  {operation}
+ *    M: Set motor speed
+ *    P: Set pin mode
+ *    R: Read value
+ *    W: Write value
+ *    
+ *  {mode}
+ *    A: Analog
+ *    D: Digital
+ *    I: INPUT
+ *    O: OUTPUT
+ *    P: INPUT_PULLUP
+ *    
+ *  {number}
+ *    If M: Motor number to set.
+ *    If P: N/A
+ *    If R: Pin number to read from.
+ *    If W: Pin number to write to.
+ *    
+ *  {quantity}
+ *    If M: Number of (sequential) motors to set.
+ *    If P: N/A
+ *    If R: Number of (sequential) inputs to read.
+ *    If W: N/A
+ *    
+ *  {value}
+ *    If M: Motor speed to set.
+ *    If P: N/A
+ *    If R: N/A
+ *    If W: Value to write.
+ *  
+ *  Examples:
+ *    Set Pin Mode:  PI4
+ *    Digital Read:  DR7:3
+ *    Digital Write: DW4:0
+ *    Analog Read:   AR4:0
+ *    Analog Write:  AW0:759
+ */
+
+
+//////////////////////
+// Setting Pin Mode //
+//////////////////////
+
 void pinModeLocal(int pinNumber, char mode) {
     switch(mode){
         case 'I':
@@ -392,6 +403,11 @@ void pinModeLocal(int pinNumber, char mode) {
     }
 }
 
+
+//////////////////
+// Digital Read //
+//////////////////
+
 void digitalReadLocal(int pinNumber, int quantity) {
     for (int i = 0; i < quantity - 1; i++) {
         digitalValue = digitalRead(pinNumber + i);
@@ -402,9 +418,19 @@ void digitalReadLocal(int pinNumber, int quantity) {
     Serial.println(digitalValue);
 }
 
+
+///////////////////
+// Digital Write //
+///////////////////
+
 void digitalWriteLocal(int pinNumber, int digitalValue) {
     digitalWrite(pinNumber, digitalValue);
 }
+
+
+/////////////////
+// Analog Read //
+/////////////////
 
 void analogReadLocal(int pinNumber, int quantity) {
     for (int i = 0; i < quantity - 1; i++) {
@@ -416,9 +442,19 @@ void analogReadLocal(int pinNumber, int quantity) {
     Serial.println(analogValue);
 }
 
+
+//////////////////
+// Analog Write //
+//////////////////
+
 void analogWriteLocal(int pinNumber, int analogValue) {
     analogWrite(pinNumber, analogValue);
 }
+
+
+/////////////////////
+// Set Motor Speed //
+/////////////////////
 
 void setMotorSpeedLocal(char mode, int motorNumber, int quantity, int value) {
     // FIXME
