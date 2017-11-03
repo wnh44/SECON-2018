@@ -1,8 +1,8 @@
 import threading
 from mainThread import *
+from debugThread import *
 from pyQtThread import *
 
-#printLock = threading.Lock()
 
 if __name__ == '__main__': 
     mainThread = mainThread()

@@ -1,13 +1,36 @@
-from threading import Thread
-import time
-from ArduinoSerial import *
+import threading
+import atexit
 
-Arduino = ArduinoSerial()
-time.sleep(2)
-#Arduino.setPinMode('A', 0, 'I')
+from mainThread import *
+from debugThread import *
+from pyQtThread import *
 
-while True:
-    distance = Arduino.analogRead(0)
-    value = Arduino.digitalRead(2)
-    print('US1: %04d' % distance + '  LS1: %04d' % value)#, end ='')
-    time.sleep(0.05)
+import atexit
+    
+if __name__ == '__main__': 
+    mainThread = MainThread()
+    mainThread.setName('mainThread')
+    mainThread.daemon = True
+     
+    debugThread = DebugThread()
+    debugThread.setName('debugThread')
+    debugThread.daemon = True
+    
+    pyQtThread = PyQtThread()
+    pyQtThread.setName('pyQtThread')
+    pyQtThread.daemon = True
+
+    mainThread.start()
+    debugThread.start()
+    pyQtThread.start()
+
+    mainThread.join()
+    debugThread.join()
+    pyQtThread.join()
+
+    print('\nMain terminating...')
+    
+
+def exit_handler():
+    print('My application is ending!')
+    debugThread.stop()

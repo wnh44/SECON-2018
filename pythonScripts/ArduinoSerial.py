@@ -17,9 +17,11 @@ Serial data is sent in the following manner:
 	{mode}
 		A: Analog
 		D: Digital
+		F: FORWARD
 		I: INPUT
 		O: OUTPUT
 		P: INPUT_PULLUP
+		R: BACKWARD
 
 	{index}
 		If M: Motor number to set.
@@ -40,11 +42,13 @@ Serial data is sent in the following manner:
 		If W: Value to write.
 
 	Examples:
-		Set Pin Mode:  PI4
-		Digital Read:  DR7:3
-		Digital Write: DW4:0
-		Analog Read:   AR4:0
-		Analog Write:  AW0:759
+		Set Pin Mode:     PI4
+		Digital Read:     DR7:3
+		Digital Write:    DW4:0
+		Analog Read:      AR4:0
+		Analog Write:     AW0:759
+		Set Motor Speed:  MF0:4:255
+		Set Motor Speed:  MR2:2:60
 
 """
 
@@ -52,7 +56,7 @@ import serial
 
 
 class ArduinoSerial():
-    def __init__(self, serialPort='/dev/ttyACM0', baud_rate=9600, read_timeout=5):
+    def __init__(self, serialPort='/dev/ttyACM0', baud_rate=115200, read_timeout=5):
         self.conn = serial.Serial(serialPort, baud_rate)
         self.conn.timeout = read_timeout
 
@@ -64,7 +68,7 @@ class ArduinoSerial():
 		MI2
 		MO8
 		MP12
-	"""
+    """
 
     def setPinMode(self, pinNumber, mode):
         message = ''.join(('M', mode, str(pinNumber)))
@@ -78,13 +82,14 @@ class ArduinoSerial():
 	- message sent across serial connection resembles the following examples:
 		RD3
 		RD12
-	"""
+    """
 
-    def digitalRead(self, pinNumber, quantity):
+    def digitalRead(self, pinNumber, quantity = 1):
         readValues = []
         message = ''.join(('R', 'D', str(pinNumber), ':', str(quantity)))
         self.conn.write(message.encode())
         readValues = self.conn.readline().decode().strip().split(':')
+        readValues = list(map(int, readValues))
         return readValues
 
     """
@@ -93,7 +98,7 @@ class ArduinoSerial():
 	- message sent across serial connection resembles the following examples:
 		WD4:1
 		WD11:0
-	"""
+    """
 
     def digitalWrite(self, pinNumber, writeValue):
         message = ''.join(('W', 'D', str(pinNumber), ':', str(writeValue)))
@@ -107,13 +112,15 @@ class ArduinoSerial():
 	- message sent across serial connection resembles the following examples:
 		RA5:1
 		RA0:5
-	"""
+    """
 
-    def analogRead(self, pinNumber, quantity):
+    def analogRead(self, pinNumber, quantity = 1):
         readValues = []
         message = (''.join(('R', 'A', str(pinNumber), ':', str(quantity))))
         self.conn.write(message.encode())
         readValues = self.conn.readline().decode().strip().split(':')
+        readValues = list(map(int, readValues))
+
         return readValues
 
     """
@@ -123,33 +130,30 @@ class ArduinoSerial():
 	- message sent across serial connection resembles the following examples:
 		WA2:256
 		WA5:1020
-	"""
+    """
 
     def analogWrite(self, pinNumber, writeValue):
         message = ''.join(('W', 'A', str(pinNumber), ':', str(writeValue)))
         self.conn.write(message.encode())
 
     """
-	setMotorSpeed(motorNumber, mode, quantity, speed)
-	- reads a number (quantity) of sequential analog values (readValues) starting 
-	  at pin (pinNumber)
-	- D(readValue) = [0,1023]
+	setMotorSpeed(motorNumber, mode, quantity, setSpeed)
+	- sets a number (quantity) of sequential motors speeds (setSpeed) starting 
+	  at motorNumber in the direction (mode) specified
+	- speed = [0,255]
 	- message sent across serial connection resembles the following examples:
-		RA5:1
-		RA0:5
-	"""
+		MF0:4:255
+		MR2:2:60
+    """
 
-    def setMotorSpeed(self, pinNumber, quantity):
-        readValues = []
-        message = (''.join(('R', 'A', str(pinNumber), ':', str(quantity))))
+    def setMotorSpeed(self, motorNumber, mode, quantity, setSpeed):
+        message = (''.join(('M', mode, str(motorNumber), ':', str(quantity), ':', str(setSpeed))))
         self.conn.write(message.encode())
-        readValues = self.conn.readline().decode().strip().split(':')
-        return readValues
 
     """
 	close()
 	- closes serial connection with the arduino
-	"""
+    """
 
     def close(self):
         self.conn.close()

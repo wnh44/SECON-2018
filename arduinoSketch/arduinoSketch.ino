@@ -4,7 +4,7 @@
 ///////////////
 
 #include <Wire.h>
-#include "utility/Adafruit_MotorShield.h"
+#include "Adafruit_MotorShield.h"
 //#include "utility/Adafruit_MS_PWMServoDriver.h"
 
 
@@ -23,7 +23,7 @@
 #define MOTOR_3_ENCODER_B 0
 
 // Microswitches
-#define MICROSWITCH_0 0
+#define MICROSWITCH_0 53
 #define MICROSWITCH_1 0
 #define MICROSWITCH_2 0
 #define MICROSWITCH_3 0
@@ -89,10 +89,10 @@ double motor2_velocity = 0;
 double motor3_velocity = 0;
 
 // Command Velocities (mm/sec)
-double motor0_commandVelocity = 0;
-double motor1_commandVelocity = 0;
-double motor2_commandVelocity = 0;
-double motor3_commandVelocity = 0;
+uint8_t motor0_commandVelocity = 0;
+uint8_t motor1_commandVelocity = 0;
+uint8_t motor2_commandVelocity = 0;
+uint8_t motor3_commandVelocity = 0;
 
 // PWM Commands
 double motor0_pwm = 0;
@@ -129,6 +129,7 @@ char operation, mode;
 int index, quantity, value;
 int digitalValue, analogValue;
 int pause = 5;
+char serialMessage[9];
 
 
 ////////////////////////////
@@ -146,10 +147,13 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.setTimeout(100);
+    
+    Serial1.begin(115200);
+    //Serial1.setTimeout(10);
 
-    pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
+    /*pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_0_ENCODER_B, INPUT_PULLUP);
     pinMode(MOTOR_1_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_1_ENCODER_B, INPUT_PULLUP);
@@ -159,38 +163,64 @@ void setup() {
     pinMode(MOTOR_3_ENCODER_B, INPUT_PULLUP);
 
     // Set Interrupts for Motor Encoders
-    attachInterrupt(digitalPinToInterrupt(MOTOR_0_ENCODER_A), motor0_encoder_ISR, CHANGE); 
-    attachInterrupt(digitalPinToInterrupt(MOTOR_1_ENCODER_A), motor1_encoder_ISR, CHANGE); 
-    attachInterrupt(digitalPinToInterrupt(MOTOR_2_ENCODER_A), motor2_encoder_ISR, CHANGE); 
-    attachInterrupt(digitalPinToInterrupt(MOTOR_3_ENCODER_A), motor3_encoder_ISR, CHANGE);
+    attachInterrupt(MOTOR_0_ENCODER_A, motor0_encoder_ISR, CHANGE); 
+    attachInterrupt(MOTOR_1_ENCODER_A, motor1_encoder_ISR, CHANGE); 
+    attachInterrupt(MOTOR_2_ENCODER_A, motor2_encoder_ISR, CHANGE); 
+    attachInterrupt(MOTOR_3_ENCODER_A, motor3_encoder_ISR, CHANGE);
 
     // Initialize Microswitch Pins
     pinMode(MICROSWITCH_0, INPUT_PULLUP);
     pinMode(MICROSWITCH_1, INPUT_PULLUP);
     pinMode(MICROSWITCH_2, INPUT_PULLUP);
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
+
+    // Initialize MotorShield and Motors
+    AFMS.begin();
+    motor0->setSpeed(0);
+    motor1->setSpeed(0);
+    motor2->setSpeed(0);
+    motor3->setSpeed(0);    
+    motor0->run(FORWARD);
+    motor1->run(FORWARD);
+    motor2->run(FORWARD);
+    motor3->run(FORWARD);
+    motor0->run(RELEASE);
+    motor1->run(RELEASE);
+    motor2->run(RELEASE);
+    motor3->run(RELEASE);*/
 }
 
 void loop() {
     if (Serial.available() > 0) {
+        memset(serialMessage, 0, sizeof(serialMessage));
         operation = Serial.read();
         delay(pause); // May be necessary elsewhere
         mode = Serial.read();
         index = Serial.parseInt();
+        sprintf(serialMessage, "%c%c%c", operation, mode, index);
+        Serial1.println(serialMessage);
+        
         if (Serial.read() == ':') {
             if (operation == 'W') {
                 value = Serial.parseInt();
+                sprintf(serialMessage, "%s%c%d", serialMessage, ':', value);
             } else {
                 quantity = Serial.parseInt();
+                sprintf(serialMessage, "%s%c%d", serialMessage, ':', quantity);
             }
-            if (operation == 'M') {
+            if (Serial.read() == ':') { // THIS WAS CHANGED!!! Hopefully still works.
                 value = Serial.parseInt();
+                sprintf(serialMessage, "%s%c%d", serialMessage, ':', value);  
             }
         }
+        //Serial1.println(sprintf(serialMessage, "Message Received: %s", serialMessage));
         
         switch(operation) {
             case 'M':
-                setMotorSpeedLocal(mode, index, quantity, value);
+                for(int i = 0; i < quantity; i++) {
+                    setMotorCommandVelocity(mode, index, value);
+                }
+                commandMotors();
                 break;
       
             case 'P':
@@ -228,7 +258,7 @@ void loop() {
 // ISR for Motor 0 Encoder //
 /////////////////////////////
 
-void motor0_encoderA_ISR() {
+void motor0_encoder_ISR() {
     // Halts interrupts
     cli();
     
@@ -237,7 +267,7 @@ void motor0_encoderA_ISR() {
     // Reads the two pins and xors them
     //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
     
-    switch(enc){
+    switch(enc) {
         case (0b1):  // CCW Forward
             motor0_encoder--;
             break;
@@ -265,7 +295,7 @@ void motor1_encoder_ISR() {
     // Reads the two pins and xors them
     //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
     
-    switch(enc){
+    switch(enc) {
         case (0b1):  // CCW Forward
             motor1_encoder--;
             break;
@@ -293,7 +323,7 @@ void motor2_encoder_ISR() {
     // Reads the two pins and xors them
     //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
     
-    switch(enc){
+    switch(enc) {
         case (0b1):  // CCW Forward
             motor2_encoder--;
             break;
@@ -321,7 +351,7 @@ void motor3_encoder_ISR() {
     // Reads the two pins and xors them
     //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
     
-    switch(enc){
+    switch(enc) {
         case (0b1):  // CCW Forward
             motor3_encoder--;
             break;
@@ -354,13 +384,15 @@ void motor3_encoder_ISR() {
  *  {mode}
  *    A: Analog
  *    D: Digital
+ *    F: FORWARD
  *    I: INPUT
  *    O: OUTPUT
  *    P: INPUT_PULLUP
+ *    R: BACKWARD
  *    
  *  {number}
  *    If M: Motor number to set.
- *    If P: N/A
+ *    If P: Pin number to set mode of.
  *    If R: Pin number to read from.
  *    If W: Pin number to write to.
  *    
@@ -382,6 +414,8 @@ void motor3_encoder_ISR() {
  *    Digital Write: DW4:0
  *    Analog Read:   AR4:0
  *    Analog Write:  AW0:759
+ *    Set Motor Speed:  MF0:4:255
+ *    Set Motor Speed:  MR2:2:60
  */
 
 
@@ -390,7 +424,7 @@ void motor3_encoder_ISR() {
 //////////////////////
 
 void pinModeLocal(int pinNumber, char mode) {
-    switch(mode){
+    switch(mode) {
         case 'I':
             pinMode(pinNumber, INPUT);
             break;
@@ -433,8 +467,9 @@ void digitalWriteLocal(int pinNumber, int digitalValue) {
 /////////////////
 
 void analogReadLocal(int pinNumber, int quantity) {
+    Serial1.println("AnalogRead");
     for (int i = 0; i < quantity - 1; i++) {
-        analogValue = analogRead(pinNumber);
+        analogValue = analogRead(pinNumber + i);
         Serial.print(analogValue);
         Serial.print(':');
     }
@@ -452,10 +487,40 @@ void analogWriteLocal(int pinNumber, int analogValue) {
 }
 
 
-/////////////////////
-// Set Motor Speed //
-/////////////////////
+//////////////////////////////////
+// Set Motor Command Velocities //
+//////////////////////////////////
 
-void setMotorSpeedLocal(char mode, int motorNumber, int quantity, int value) {
-    // FIXME
+void setMotorCommandVelocity(char mode, int motorNumber, uint8_t value) {
+    switch(motorNumber) {
+        case 0:
+            if(mode == 'R') motor0->run(BACKWARD);
+            else motor0->run(FORWARD);
+            motor0_commandVelocity = value;
+        case 1:
+            if(mode == 'R') motor1->run(BACKWARD);
+            else motor1->run(FORWARD);
+            motor1_commandVelocity = value;
+        case 2:
+            if(mode == 'R') motor2->run(BACKWARD);
+            else motor2->run(FORWARD);
+            motor2_commandVelocity = value;
+        case 3:
+            if(mode == 'R') motor3->run(BACKWARD);
+            else motor3->run(FORWARD);
+            motor3_commandVelocity = value;
+    }
 }
+
+
+////////////////////
+// Command Motors //
+////////////////////
+
+void commandMotors() {
+    motor0->setSpeed(motor0_commandVelocity);
+    motor1->setSpeed(motor1_commandVelocity);
+    motor2->setSpeed(motor2_commandVelocity);
+    motor3->setSpeed(motor3_commandVelocity);
+}
+
