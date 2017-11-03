@@ -3,16 +3,16 @@ import time
 from ArduinoSerial import *
 
 class MainThread(Thread):
-    def __init__(self, val = 10):
+    def __init__(self):
         Thread.__init__(self)
-        self.val = val
 
     def run(self):
         # Setup code
         Arduino = ArduinoSerial('/dev/ttyACM0')
         time.sleep(2)
+        i = 0
         
-        while True:
+        while i < 100:
             #distance = Arduino.analogRead(0)
             value = Arduino.digitalRead(53)
             
@@ -23,4 +23,5 @@ class MainThread(Thread):
             
             #print('US1: %04d' % distance[0] + '  LS1: %04d' % value[0])
             print('LS1: %04d' % value[0])
-            time.sleep(0.5)
+            time.sleep(0.05)
+            i += 1

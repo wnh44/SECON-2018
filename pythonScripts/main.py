@@ -12,21 +12,21 @@ if __name__ == '__main__':
     mainThread.setName('mainThread')
     mainThread.daemon = True
      
-    debugThread = DebugThread()
-    debugThread.setName('debugThread')
-    debugThread.daemon = True
+    #debugThread = DebugThread()
+    #debugThread.setName('debugThread')
+    #debugThread.daemon = True
     
-    pyQtThread = PyQtThread()
+    pyQtThread = PyQtThread()#debugThread)
     pyQtThread.setName('pyQtThread')
     pyQtThread.daemon = True
 
     mainThread.start()
-    debugThread.start()
+    #debugThread.start()
     pyQtThread.start()
 
-    mainThread.join()
-    debugThread.join()
-    pyQtThread.join()
+    #mainThread.join()
+    #debugThread.join()
+    #pyQtThread.join()
 
     print('\nMain terminating...')
     
