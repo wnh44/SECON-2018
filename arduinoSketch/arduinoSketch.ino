@@ -8,12 +8,74 @@
 //#include "utility/Adafruit_MS_PWMServoDriver.h"
 
 
+/////////////////////////////////////////////
+// Defines for serial connection for debug //
+/////////////////////////////////////////////
+
+// define desired serial port
+#define SERIAL1
+
+#ifdef SERIAL1
+    #define DEBUG_PRINT(x)      Serial1.print(x)
+    #define DEBUG_PRINT_DEC(x)  Serial1.print(x, DEC)
+    #define DEBUG_PRINT_HEX(x)  Serial1.print(x, HEX)
+    #define DEBUG_PRINT_0(x)    Serial1.print(x, 0)
+    #define DEBUG_PRINT_2(x)    Serial1.print(x, 2)
+    #define DEBUG_PRINT_4(x)    Serial1.print(x, 4)
+    #define DEBUG_PRINTLN(x)    Serial1.println(x)
+    #define DEBUG_PRINT_DEC(x)  Serial1.println(x, DEC)
+    #define DEBUG_PRINT_HEX(x)  Serial1.println(x, HEX)
+    #define DEBUG_PRINT_0(x)    Serial1.println(x, 0)
+    #define DEBUG_PRINT_2(x)    Serial1.println(x, 2)
+    #define DEBUG_PRINT_4(x)    Serial1.println(x, 4)
+#elif SERIAL2
+    #define DEBUG_PRINT(x)      Serial2.print(x)
+    #define DEBUG_PRINT_DEC(x)  Serial2.print(x, DEC)
+    #define DEBUG_PRINT_HEX(x)  Serial2.print(x, HEX)
+    #define DEBUG_PRINT_0(x)    Serial2.print(x, 0)
+    #define DEBUG_PRINT_2(x)    Serial2.print(x, 2)
+    #define DEBUG_PRINT_4(x)    Serial2.print(x, 4)
+    #define DEBUG_PRINTLN(x)    Serial2.println(x)
+    #define DEBUG_PRINT_DEC(x)  Serial2.println(x, DEC)
+    #define DEBUG_PRINT_HEX(x)  Serial2.println(x, HEX)
+    #define DEBUG_PRINT_0(x)    Serial2.println(x, 0)
+    #define DEBUG_PRINT_2(x)    Serial2.println(x, 2)
+    #define DEBUG_PRINT_4(x)    Serial2.println(x, 4)
+#elif SERIAL3
+    #define DEBUG_PRINT(x)      Serial3.print(x)
+    #define DEBUG_PRINT_DEC(x)  Serial3.print(x, DEC)
+    #define DEBUG_PRINT_HEX(x)  Serial3.print(x, HEX)
+    #define DEBUG_PRINT_0(x)    Serial3.print(x, 0)
+    #define DEBUG_PRINT_2(x)    Serial3.print(x, 2)
+    #define DEBUG_PRINT_4(x)    Serial3.print(x, 4)
+    #define DEBUG_PRINTLN(x)    Serial3.println(x)
+    #define DEBUG_PRINT_DEC(x)  Serial3.println(x, DEC)
+    #define DEBUG_PRINT_HEX(x)  Serial3.println(x, HEX)
+    #define DEBUG_PRINT_0(x)    Serial3.println(x, 0)
+    #define DEBUG_PRINT_2(x)    Serial3.println(x, 2)
+    #define DEBUG_PRINT_4(x)    Serial3.println(x, 4)
+#else
+    #define DEBUG_PRINT(x)
+    #define DEBUG_PRINT_DEC(x)
+    #define DEBUG_PRINT_HEX(x)
+    #define DEBUG_PRINT_0(x)
+    #define DEBUG_PRINT_2(x)
+    #define DEBUG_PRINT_4(x)
+    #define DEBUG_PRINTLN(x)
+    #define DEBUG_PRINT_DEC(x)
+    #define DEBUG_PRINT_HEX(x)
+    #define DEBUG_PRINT_0(x)
+    #define DEBUG_PRINT_2(x)
+    #define DEBUG_PRINT_4(x)
+#endif
+
+
 /////////////////////
 // Pin Definitions //
 /////////////////////
 
 // Encoder Pins
-#define MOTOR_0_ENCODER_A 0                                        // FIXME: values
+#define MOTOR_0_ENCODER_A 0            // FIXME: values
 #define MOTOR_0_ENCODER_B 0
 #define MOTOR_1_ENCODER_A 0
 #define MOTOR_1_ENCODER_B 0
@@ -34,31 +96,6 @@
 #define RANGEFINDER_2 0
 #define RANGEFINDER_3 0
 #define RANGEFINDER_4 0
-
-
-/////////////////////////////
-// State Machine Variables //
-/////////////////////////////
-
-// States
-enum STATE {
-    WAIT_FOR_START,
-    START,
-    RAPE_AND_PILAGE,
-    RECIEVE_LED,
-    TO_STAGE_A,
-    STAGE_A,
-    FROM_STAGE_A,
-    TO_STAGE_B,
-    TO_CENTER,
-    TO_BOOTY,
-    RETRIEVE_BOOTY,
-    TO_FLAG,
-    TO_SHIP,
-    TO_STAGE_C,
-    STAGE_C,
-    SAIL_THE_HIGH_SEAS
-}
 
 
 /////////////////////
@@ -149,9 +186,10 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 void setup() {
     Serial.begin(115200);
     Serial.setTimeout(100);
-    
+
+    #ifdef
     Serial1.begin(115200);
-    //Serial1.setTimeout(10);
+    Serial1.setTimeout(100);
 
     /*pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_0_ENCODER_B, INPUT_PULLUP);
@@ -198,7 +236,7 @@ void loop() {
         mode = Serial.read();
         index = Serial.parseInt();
         sprintf(serialMessage, "%c%c%c", operation, mode, index);
-        Serial1.println(serialMessage);
+        DEBUG_PRINTLN(serialMessage);
         
         if (Serial.read() == ':') {
             if (operation == 'W') {
@@ -213,7 +251,7 @@ void loop() {
                 sprintf(serialMessage, "%s%c%d", serialMessage, ':', value);  
             }
         }
-        //Serial1.println(sprintf(serialMessage, "Message Received: %s", serialMessage));
+        //DEBUG_PRINTLN(sprintf(serialMessage, "Message Received: %s", serialMessage));
         
         switch(operation) {
             case 'M':
