@@ -12,7 +12,7 @@ class MainThread(Thread):
         time.sleep(2)
         i = 0
         
-        while i < 100:
+        while i < 10:
             #distance = Arduino.analogRead(0)
             value = Arduino.digitalRead(53)
             
