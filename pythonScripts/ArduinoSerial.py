@@ -1,7 +1,7 @@
 """
 Filename: ArduinoSerial.py
 Description: ArduinoSerial is a class that handles serial communication between
-	the raspberry pi and the arduino.
+	     the raspberry pi and the arduino.
 
 
 Serial data is sent in the following manner:
