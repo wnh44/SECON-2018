@@ -13,9 +13,11 @@
 /////////////////////////////////////////////
 
 // define desired serial port
-#define SERIAL1
+#define DEBUG_SERIAL1
 
-#ifdef SERIAL1
+#if defined(DEBUG_SERIAL1)
+    #define DEBUG_BEGIN(x)      Serial1.begin(x)
+    #define DEBUG_TIMEOUT(x)    Serial1.setTimeout(x)
     #define DEBUG_PRINT(x)      Serial1.print(x)
     #define DEBUG_PRINT_DEC(x)  Serial1.print(x, DEC)
     #define DEBUG_PRINT_HEX(x)  Serial1.print(x, HEX)
@@ -28,7 +30,9 @@
     #define DEBUG_PRINT_0(x)    Serial1.println(x, 0)
     #define DEBUG_PRINT_2(x)    Serial1.println(x, 2)
     #define DEBUG_PRINT_4(x)    Serial1.println(x, 4)
-#elif SERIAL2
+#elif defined(DEBUG_SERIAL2)
+    #define DEBUG_BEGIN(x)      Serial2.begin(x)
+    #define DEBUG_TIMEOUT(x)    Serial2.setTimeout(x)
     #define DEBUG_PRINT(x)      Serial2.print(x)
     #define DEBUG_PRINT_DEC(x)  Serial2.print(x, DEC)
     #define DEBUG_PRINT_HEX(x)  Serial2.print(x, HEX)
@@ -41,7 +45,9 @@
     #define DEBUG_PRINT_0(x)    Serial2.println(x, 0)
     #define DEBUG_PRINT_2(x)    Serial2.println(x, 2)
     #define DEBUG_PRINT_4(x)    Serial2.println(x, 4)
-#elif SERIAL3
+#elif defined(DEBUG_SERIAL3)
+    #define DEBUG_BEGIN(x)      Serial3.begin(x)
+    #define DEBUG_TIMEOUT(x)    Serial3.setTimeout(x)
     #define DEBUG_PRINT(x)      Serial3.print(x)
     #define DEBUG_PRINT_DEC(x)  Serial3.print(x, DEC)
     #define DEBUG_PRINT_HEX(x)  Serial3.print(x, HEX)
@@ -55,6 +61,8 @@
     #define DEBUG_PRINT_2(x)    Serial3.println(x, 2)
     #define DEBUG_PRINT_4(x)    Serial3.println(x, 4)
 #else
+    #define DEBUG_BEGIN(x)
+    #define DEBUG_TIMEOUT(x)
     #define DEBUG_PRINT(x)
     #define DEBUG_PRINT_DEC(x)
     #define DEBUG_PRINT_HEX(x)
@@ -103,7 +111,7 @@
 /////////////////////
 
 // Time Stamps
-volatile temp;                                          // FIXME: No clue
+volatile int temp;                                          // FIXME: No clue
 volatile int prevTime = 0;
 volatile int curTime = 0;
 
@@ -186,10 +194,9 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 void setup() {
     Serial.begin(115200);
     Serial.setTimeout(100);
-
-    #ifdef
-    Serial1.begin(115200);
-    Serial1.setTimeout(100);
+    
+    DEBUG_BEGIN(115200);
+    DEBUG_TIMEOUT(100);
 
     /*pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_0_ENCODER_B, INPUT_PULLUP);
@@ -236,6 +243,7 @@ void loop() {
         mode = Serial.read();
         index = Serial.parseInt();
         sprintf(serialMessage, "%c%c%c", operation, mode, index);
+        Serial3.println(serialMessage);
         DEBUG_PRINTLN(serialMessage);
         
         if (Serial.read() == ':') {
