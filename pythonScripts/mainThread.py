@@ -14,31 +14,44 @@ class MainThread(Thread):
         # Setup code
         Arduino = ArduinoSerial('/dev/ttyACM0')
         time.sleep(2)
+        states = ['WAIT_FOR_START',
+                  'START',
+                  'DECODE_LED',
+                  'TO_STAGE_A',
+                  'STAGE_A',
+                  'FROM_STAGE_A',
+                  'TO_STAGE_B',
+                  'STAGE_B',
+                  'TO_CENTER',
+                  'TO_BOOTY',
+                  'RETRIEVE_BOOTY',
+                  'TO_FLAG',
+                  'TO_SHIP',
+                  'TO_STAGE_C',
+                  'STAGE_C']
         state = CustomEnumeratorBecausePythonSucks(0)
         
         while 1:
             if state.currentState() == 'WAIT_FOR_START':
                 print(state)
-                Arduino.setMotorSpeed(0, 'F', 4, 255)
+                #Arduino.setMotorSpeed(0, 'F', 4, 255)
                 time.sleep(5)
                 state.next()
             elif state.currentState() == 'START':
                 print(state)
-                Arduino.setMotorSpeed(0, 'F', 4, 0)
+                #Arduino.setMotorSpeed(0, 'F', 4, 0)
                 time.sleep(2)
                 state.next()
             elif state.currentState() == 'DECODE_LED':
                 print(state)
-                Arduino.setMotorSpeed(0, 'R', 4, 255)
+                #Arduino.setMotorSpeed(0, 'R', 4, 255)
                 time.sleep(5)
                 state.next()
             elif state.currentState() == 'TO_STAGE_A':
                 print(state)
-                Arduino.setMotorSpeed(0, 'F', 4, 0)
+                #Arduino.setMotorSpeed(0, 'F', 4, 0)
                 time.sleep(2)
                 state.next()
-                
-
                 
             #distance = Arduino.analogRead(0)
             #value = Arduino.digitalRead(53)

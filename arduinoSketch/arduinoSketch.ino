@@ -13,7 +13,11 @@
 /////////////////////////////////////////////
 
 // define desired serial port
+<<<<<<< HEAD
 #define DEBUG_SERIAL1
+=======
+#define DEBUG_SERIAL3
+>>>>>>> 9c6716f7cc807e806b8c09d74352605ff911c879
 
 #if defined(DEBUG_SERIAL1)
     #define DEBUG_BEGIN(x)      Serial1.begin(x)
