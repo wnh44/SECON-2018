@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>910</width>
+    <width>612</width>
     <height>610</height>
    </rect>
   </property>
@@ -116,7 +116,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QPlainTextEdit" name="motorBox_0_text">
+     <widget class="QPlainTextEdit" name="motorBox0_text">
       <property name="geometry">
        <rect>
         <x>50</x>
@@ -129,7 +129,7 @@
        <string notr="true">background-color: #EEEEEE;</string>
       </property>
      </widget>
-     <widget class="QLabel" name="motorBox_0_label">
+     <widget class="QLabel" name="motorBox0_label">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -150,7 +150,7 @@
        <string>  Motor 0:</string>
       </property>
      </widget>
-     <widget class="QLabel" name="motorBox_0_label_2">
+     <widget class="QLabel" name="motorBox0_label_2">
       <property name="geometry">
        <rect>
         <x>112</x>
@@ -166,9 +166,9 @@
        <string>mm/sec</string>
       </property>
      </widget>
-     <zorder>motorBox_0_label</zorder>
-     <zorder>motorBox_0_label_2</zorder>
-     <zorder>motorBox_0_text</zorder>
+     <zorder>motorBox0_label</zorder>
+     <zorder>motorBox0_label_2</zorder>
+     <zorder>motorBox0_text</zorder>
     </widget>
    </widget>
   </widget>

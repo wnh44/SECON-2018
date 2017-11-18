@@ -210,19 +210,16 @@ void setup() {
     pinMode(MOTOR_2_ENCODER_B, INPUT_PULLUP);
     pinMode(MOTOR_3_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_3_ENCODER_B, INPUT_PULLUP);
-
     // Set Interrupts for Motor Encoders
     attachInterrupt(MOTOR_0_ENCODER_A, motor0_encoder_ISR, CHANGE); 
     attachInterrupt(MOTOR_1_ENCODER_A, motor1_encoder_ISR, CHANGE); 
     attachInterrupt(MOTOR_2_ENCODER_A, motor2_encoder_ISR, CHANGE); 
     attachInterrupt(MOTOR_3_ENCODER_A, motor3_encoder_ISR, CHANGE);
-
     // Initialize Microswitch Pins
     pinMode(MICROSWITCH_0, INPUT_PULLUP);
     pinMode(MICROSWITCH_1, INPUT_PULLUP);
     pinMode(MICROSWITCH_2, INPUT_PULLUP);
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
-
     // Initialize MotorShield and Motors
     AFMS.begin();
     motor0->setSpeed(0);
