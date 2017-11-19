@@ -5,16 +5,14 @@ from MainWindow import *
 from debugThread import *
 
 class PyQtThread(Thread):
-    def __init__(self):#, debugThread):
+    def __init__(self):
         Thread.__init__(self)
-        #super(DebugThread, self).__init__()
-        #self.debugThread = debugThread
 
     def run(self):
         print('here')
         app = QtGui.QApplication(sys.argv)
         
-        mainWindow = MainWindow()#self.debugThread)
+        mainWindow = MainWindow()
         
         mainWindow.show()   
         QtCore.QTimer.singleShot(0, mainWindow.appinit)

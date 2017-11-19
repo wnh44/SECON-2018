@@ -4,31 +4,41 @@ Description: This file contains functions and variables associated with
              course objectives.
 """
 
+import random   # for now
+
 
 """
     decodeLED()
-    - decodes the PWM IRLED loacted at thestart of the course
+    - decodes the PWM IR LED located at the start of the course
     - sets global location parameters
 """
-def decodeLED():
+def decodeLED(mainThread):
+    # FIXME: Implement IR LED
+
+    # Random selection for now
+    for item in mainThread.locations:
+        item = random.randint(0,1)
+
+    print('\nRandomized locations:')
+    print(mainThread.locations)
+
     return
 
 
 """
     activateStageA(location)
     - activates stage A
-    - location parameter is the received location of stage A
 """
-def activateStageA(location):
+def activateStageA(mainThread):
+    # Might not be necessary
     return
 
 
 """
     activateStageB(location)
     - activates stage B
-    - location parameter is the received location of stage B
 """
-def activateStageB(location):
+def activateStageB(mainThread):
     return
 
 
@@ -37,6 +47,7 @@ def activateStageB(location):
     - retrieves and secures the treasure chest
 """
 def retrieveChest():
+    # Do some stuff
     return
 
 
@@ -45,6 +56,7 @@ def retrieveChest():
     - raises the flag
 """
 def raiseFlag():
+    # Do some other stuff
     return
 
 
@@ -54,4 +66,5 @@ def raiseFlag():
     - location parameter is the received location of stage C
 """
 def ActivateStageC(location):
+    # Might not be necessary
     return

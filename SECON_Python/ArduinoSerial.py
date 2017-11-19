@@ -6,7 +6,7 @@ Description: ArduinoSerial is a class that handles serial communication between
 
 Serial data is sent in the following manner:
 
-	{operation}{mode}{index}{':'}{quantity}{':'}{value}{'/n'}
+    {operation}{mode}{index}{':'}{quantity}{':'}{value}{'/n'}
 
 	{operation}
 		M: Set motor speed
@@ -56,7 +56,7 @@ import serial
 
 
 class ArduinoSerial():
-    def __init__(self, serialPort='/dev/ttyACM0', baud_rate=115200, read_timeout=5):
+    def __init__(self, serialPort = '/dev/ttyACM0', baud_rate = 9600, read_timeout = 5):
         self.conn = serial.Serial(serialPort, baud_rate)
         self.conn.timeout = read_timeout
 
@@ -85,7 +85,6 @@ class ArduinoSerial():
     """
 
     def digitalRead(self, pinNumber, quantity = 1):
-        readValues = []
         message = ''.join(('R', 'D', str(pinNumber), ':', str(quantity)))
         self.conn.write(message.encode())
         readValues = self.conn.readline().decode().strip().split(':')
@@ -115,7 +114,6 @@ class ArduinoSerial():
     """
 
     def analogRead(self, pinNumber, quantity = 1):
-        readValues = []
         message = (''.join(('R', 'A', str(pinNumber), ':', str(quantity))))
         self.conn.write(message.encode())
         readValues = self.conn.readline().decode().strip().split(':')

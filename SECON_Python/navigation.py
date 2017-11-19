@@ -4,13 +4,16 @@ Description: This file contains functions and variables associated with
              navigation of the course.
 """
 
+import time
+
 
 """
     toStageA(location)
     - navigates to stage A
     - location parameter is the received location of stage A
 """
-def toStageA(location):
+def toStageA(mainThread):
+    # Arduino.setMotorSpeed(0, 'F', 4, 0)
     return
 
 
@@ -49,9 +52,12 @@ def toCenterOfField():
 
 """
     jacksonIsADouche(everyone, knows, this, already)
-    - just stating the obvious
+    - This function just states the obvious
 """
 def jacksonIsADouche(everyone, knows, this, already):
+    while True:
+        print('Jackson is a douche.')
+        time.sleep(1)
     return True
 
 
