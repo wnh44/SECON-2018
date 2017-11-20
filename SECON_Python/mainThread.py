@@ -14,7 +14,10 @@ class MainThread(Thread):
     def __init__(self):
         Thread.__init__(self)
 
+        # self.locations contains the locations for stages A, B, and C
         self.locations = [0, 0, 0]
+
+        # Set up GPIO in order to use interrupt for start button
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(START_BUTTON, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
@@ -23,17 +26,16 @@ class MainThread(Thread):
         self.Arduino = ArduinoSerial('/dev/ttyACM0', 57600)
         time.sleep(2)
         states = ['WAIT_FOR_START',
-                  'START',
                   'DECODE_LED',
                   'TO_STAGE_A',
                   'STAGE_A',
                   'FROM_STAGE_A',
                   'TO_STAGE_B',
                   'STAGE_B',
-                  'TO_CENTER',
                   'TO_BOOTY',
                   'RETRIEVE_BOOTY',
                   'TO_FLAG',
+                  'FLAG',
                   'TO_SHIP',
                   'TO_STAGE_C',
                   'STAGE_C']
@@ -45,65 +47,78 @@ class MainThread(Thread):
         while 1:
             print(self.state)
 
+            # Waits for start, using GPIO on RasPi as an interrupt
             if self.state.currentState() == 'WAIT_FOR_START':
+                print('Awaiting Instructions...\n')
                 GPIO.wait_for_edge(START_BUTTON, GPIO.FALLING)
                 print('Start button pressed.')
                 self.state.next()
 
-            elif self.state.currentState() == 'START':
-                print('Starting...')
-                self.state.next()
-
+            # Decodes IR LED on starting square. Decoding function is in arduino
+            # sketch because timing is crucial.
             elif self.state.currentState() == 'DECODE_LED':
                 decodeLED(self)
                 self.state.next()
 
+            # Navigate to Stage A
             elif self.state.currentState() == 'TO_STAGE_A':
                 toStageA(self)
                 self.state.next()
 
+            # Activate Stage A
             elif self.state.currentState() == 'STAGE_A':
                 activateStageA(self)
                 self.state.next()
 
+            # Navigates from Stage A back to the center of the ship
             elif self.state.currentState() == 'FROM_STAGE_A':
+                toCenterOfShip(self)
                 self.state.next()
 
+            # Navigate to Stage B
             elif self.state.currentState() == 'TO_STAGE_B':
+                goDownRamp()
+                toStageB(self)
                 self.state.next()
 
+            # Activate Stage B
             elif self.state.currentState() == 'STAGE_B':
+                activateStageB(self)
                 self.state.next()
 
-            elif self.state.currentState() == 'TO_CENTER':
-                self.state.next()
-
+            # Navigate to the treasure chest
             elif self.state.currentState() == 'TO_BOOTY':
+                toTreasureChest(self)
                 self.state.next()
 
+            # Retrieve and secure the treasure chest
             elif self.state.currentState() == 'RETRIEVE_BOOTY':
+                retrieveChest()
+                toCenterOfField()
                 self.state.next()
 
+            # Navigate to the flag
             elif self.state.currentState() == 'TO_FLAG':
+                toFlag()
                 self.state.next()
 
+            # Raise the flag
+            elif self.state.currentState() == 'FLAG':
+                raiseFlag()
+                self.state.next()
+
+            # Navigate back to the ship
             elif self.state.currentState() == 'TO_SHIP':
+                toCenterOfField()
+                goUpRamp()
                 self.state.next()
 
+            # Navigate to Stage C
             elif self.state.currentState() == 'TO_STAGE_C':
+                toStageC(self)
                 self.state.next()
 
+            # Activate Stage C
             elif self.state.currentState() == 'STAGE_C':
+                activateStageC(self)
                 self.state.next()
-                
-            #distance = Arduino.analogRead(0)
-            #value = Arduino.digitalRead(53)
-
-            #if value[0] == 1:
-                #Arduino.digitalWrite(22, 1)
-            #else:
-                #Arduino.digitalWrite(22, 0)
-
-            #print('US1: %04d' % distance[0] + '  LS1: %04d' % value[0])
-            #time.sleep(0.05)
-            #i += 1

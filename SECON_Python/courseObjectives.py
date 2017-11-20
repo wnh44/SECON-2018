@@ -65,6 +65,6 @@ def raiseFlag():
     - activates stage C
     - location parameter is the received location of stage C
 """
-def ActivateStageC(location):
+def activateStageC(mainThread):
     # Might not be necessary
     return

@@ -21,7 +21,7 @@ def toStageA(mainThread):
     toCenterOfShip()
     - navigates to center of the ship
 """
-def toCenterOfShip():
+def toCenterOfShip(mainThread):
     return
 
 
@@ -38,7 +38,7 @@ def goDownRamp():
     - navigates to stage B
     - location parameter is the received location of stage B
 """
-def toStageB(location):
+def toStageB(mainThread):
     return
 
 
@@ -55,7 +55,8 @@ def toCenterOfField():
     - This function just states the obvious
 """
 def jacksonIsADouche(everyone, knows, this, already):
-    while True:
+    forever = True
+    while forever:
         print('Jackson is a douche.')
         time.sleep(1)
     return True
@@ -66,7 +67,7 @@ def jacksonIsADouche(everyone, knows, this, already):
     - navigates to the treasure chest
     - location parameter is the received location of stage B
 """
-def toTreasureChest(location):
+def toTreasureChest(mainThread):
     return
 
 
@@ -91,5 +92,5 @@ def goUpRamp():
     - navigates to stage C
     - location parameter is the received location of stage C
 """
-def toStageC(location):
+def toStageC(mainThread):
     return
