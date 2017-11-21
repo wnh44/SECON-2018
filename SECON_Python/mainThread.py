@@ -14,17 +14,17 @@ class MainThread(Thread):
     def __init__(self):
         Thread.__init__(self)
 
+        # Initialize serial connection
+        self.Arduino = ArduinoSerial('/dev/ttyACM0', 57600)
+        
         # self.locations contains the locations for stages A, B, and C
         self.locations = [0, 0, 0]
 
         # Set up GPIO in order to use interrupt for start button
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(START_BUTTON, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-
-    def run(self):
-        # Setup code
-        self.Arduino = ArduinoSerial('/dev/ttyACM0', 57600)
-        time.sleep(2)
+        
+        # Setup for state machine
         states = ['WAIT_FOR_START',
                   'DECODE_LED',
                   'TO_STAGE_A',
@@ -41,8 +41,8 @@ class MainThread(Thread):
                   'STAGE_C']
         self.state = StateEnum(states)
 
-
-        # NOTE: State machine is theorized for now
+    def run(self):
+        # FIXME: State machine is theorized for now
 
         while 1:
             print(self.state)

@@ -1,6 +1,7 @@
 import time, serial
 from PyQt4 import QtCore, QtGui
 
+
 class debugListener(QtCore.QThread):
     def __init__(self, parent):
         # Setup Code
