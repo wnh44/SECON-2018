@@ -9,11 +9,36 @@ import time
 
 """
     toStageA(location)
-    - navigates to stage A
-    - location parameter is the received location of stage A
+    - navigates to stage A (theoretically)
 """
 def toStageA(mainThread):
-    # Arduino.setMotorSpeed(0, 'F', 4, 0)
+    againstBackWall = 0
+    microswitches = mainThread.Arduino.digitalRead(0, 2)
+    againstBackWall = microswitches[0] & microswitches[1]  # I think '&' is right
+
+    while againstBackWall == 0:
+        moveRobotForward(mainThread, 255)
+        microswitches = mainThread.Arduino.digitalRead(0, 2)
+        againstBackWall = microswitches[0] & microswitches[1]  # I think '&' is right
+
+    if mainThread.locations[0] == 0:
+        atStageA = 0
+        while atStageA == 0:
+            otherStageA = mainThread.Arduino.analogRead(1, 1)
+            if otherStageA >= 37:
+                atStageA = 1
+            moveRobotLeft(mainThread, 255)
+        stopRobot(mainThread)
+
+    elif mainThread.locations[0] == 1:
+        atStageA = 0
+        while atStageA == 0:
+            otherStageA = mainThread.Arduino.analogRead(0, 1)
+            if otherStageA >= 37:
+                atStageA = 1
+            moveRobotRight(mainThread, 255)
+        stopRobot(mainThread)
+
     return
 
 
@@ -36,7 +61,6 @@ def goDownRamp():
 """
     toStageB(location)
     - navigates to stage B
-    - location parameter is the received location of stage B
 """
 def toStageB(mainThread):
     return
@@ -65,7 +89,6 @@ def jacksonIsADouche(everyone, knows, this, already):
 """
     toTreasureChest(location)
     - navigates to the treasure chest
-    - location parameter is the received location of stage B
 """
 def toTreasureChest(mainThread):
     return
@@ -90,7 +113,62 @@ def goUpRamp():
 """
     toStageC(location)
     - navigates to stage C
-    - location parameter is the received location of stage C
 """
 def toStageC(mainThread):
+    return
+
+
+"""
+    moveRobotForward(mainThread, speed)
+    - commands robot forward at designated speed
+"""
+def moveRobotForward(mainThread, speed = 255):
+    mainThread.Arduino.setMotorSpeed(0, 'F', 4, speed)
+    mainThread.Arduino.callArduinoFunction('C')
+    return
+
+
+"""
+    moveRobotBackward(mainThread, speed)
+    - commands robot backward at designated speed
+"""
+def moveRobotBackward(mainThread, speed = 255):
+    mainThread.Arduino.setMotorSpeed(0, 'B', 4, speed)
+    mainThread.Arduino.callArduinoFunction('C')
+    return
+
+# NOTE: THE FOLLOWING TWO FUNCTIONS MIGHT BE INVERTED
+"""
+    moveRobotLeft(mainThread, speed)
+    - commands robot left at designated speed
+"""
+def moveRobotLeft(mainThread, speed = 255):
+    mainThread.Arduino.setMotorSpeed(0, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(1, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(2, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(3, 'B', 1, speed)
+    mainThread.Arduino.callArduinoFunction('C')
+    return
+
+
+"""
+    moveRobotRight(mainThread, speed)
+    - commands robot right at designated speed
+"""
+def moveRobotRight(mainThread, speed = 255):
+    mainThread.Arduino.setMotorSpeed(0, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(1, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(2, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(3, 'F', 1, speed)
+    mainThread.Arduino.callArduinoFunction('C')
+    return
+
+
+"""
+    stopRobot(mainThread)
+    - commands robot to stop
+"""
+def stopRobot(mainThread):
+    mainThread.Arduino.setMotorSpeed(0, 'F', 4, 0)
+    mainThread.Arduino.callArduinoFunction('C')
     return

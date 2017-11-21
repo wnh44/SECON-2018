@@ -13,11 +13,7 @@
 /////////////////////////////////////////////
 
 // define desired serial port
-<<<<<<< HEAD
-#define DEBUG_SERIAL1
-=======
 #define DEBUG_SERIAL3
->>>>>>> 9c6716f7cc807e806b8c09d74352605ff911c879
 
 #if defined(DEBUG_SERIAL1)
     #define DEBUG_BEGIN(x)      Serial1.begin(x)
@@ -243,8 +239,8 @@ void loop() {
         delay(pause); // May be necessary elsewhere
         mode = Serial.read();
         index = Serial.parseInt();
+        
         sprintf(serialMessage, "%c%c%c", operation, mode, index);
-        Serial3.println(serialMessage);
         DEBUG_PRINTLN(serialMessage);
         
         if (Serial.read() == ':') {
@@ -263,11 +259,21 @@ void loop() {
         //DEBUG_PRINTLN(sprintf(serialMessage, "Message Received: %s", serialMessage));
         
         switch(operation) {
+            case 'F':
+                if (mode == 'L') {
+                    // FIXME: Will contain call to IR function
+                    break;
+                } else if (mode == 'C') {
+                    commandMotors();
+                    break;
+                } else {
+                    break;
+                }
+                
             case 'M':
                 for(int i = 0; i < quantity; i++) {
                     setMotorCommandVelocity(mode, index, value);
                 }
-                commandMotors();
                 break;
       
             case 'P':
@@ -277,22 +283,24 @@ void loop() {
             case 'R':
                 if (mode == 'D') {
                     digitalReadLocal(index, quantity);
+                    break;
                 } else if (mode == 'A') {
                     analogReadLocal(index, quantity);
+                    break;
                 } else {
                     break;
                 }
-                break;
               
             case 'W':
                 if (mode == 'D') {
                     digitalWriteLocal(index, value);
+                    break;
                 } else if (mode == 'A') {
                     analogWriteLocal(index, value);
+                    break;
                 } else {
                     break;
                 }
-                break;
       
             default:
                 break;
@@ -514,7 +522,6 @@ void digitalWriteLocal(int pinNumber, int digitalValue) {
 /////////////////
 
 void analogReadLocal(int pinNumber, int quantity) {
-    Serial1.println("AnalogRead");
     for (int i = 0; i < quantity - 1; i++) {
         analogValue = analogRead(pinNumber + i);
         Serial.print(analogValue);

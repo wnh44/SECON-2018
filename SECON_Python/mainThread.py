@@ -49,7 +49,7 @@ class MainThread(Thread):
 
             # Waits for start, using GPIO on RasPi as an interrupt
             if self.state.currentState() == 'WAIT_FOR_START':
-                print('Awaiting Instructions...\n')
+                print('Awaiting start button...\n')
                 GPIO.wait_for_edge(START_BUTTON, GPIO.FALLING)
                 print('Start button pressed.')
                 self.state.next()

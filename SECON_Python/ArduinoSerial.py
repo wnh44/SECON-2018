@@ -141,11 +141,23 @@ class ArduinoSerial():
 	- speed = [0,255]
 	- message sent across serial connection resembles the following examples:
 		MF0:4:255
-		MR2:2:60
+		MB2:2:60
     """
 
-    def setMotorSpeed(self, motorNumber, mode, quantity, setSpeed):
+    def setMotorSpeed(self, motorNumber, mode, quantity = 0, setSpeed = 255):
         message = (''.join(('M', mode, str(motorNumber), ':', str(quantity), ':', str(setSpeed))))
+        self.conn.write(message.encode())
+
+    """
+	callArduinoFunction(function)
+	- calls a function defined in the Arduino code
+	- message sent across serial connection resembles the following examples:
+	    FL0  <-- Receives and decodes PWM IR LED
+		FC0  <-- Sets all motors to their assigned motor velocities
+    """
+
+    def callArduinoFunction(self, function):
+        message = (''.join(('F', function, str(0))))
         self.conn.write(message.encode())
 
     """
