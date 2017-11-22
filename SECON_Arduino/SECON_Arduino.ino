@@ -192,7 +192,7 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(57600);
     Serial.setTimeout(100);
     
     DEBUG_BEGIN(115200);
@@ -210,12 +210,14 @@ void setup() {
     attachInterrupt(MOTOR_0_ENCODER_A, motor0_encoder_ISR, CHANGE); 
     attachInterrupt(MOTOR_1_ENCODER_A, motor1_encoder_ISR, CHANGE); 
     attachInterrupt(MOTOR_2_ENCODER_A, motor2_encoder_ISR, CHANGE); 
-    attachInterrupt(MOTOR_3_ENCODER_A, motor3_encoder_ISR, CHANGE);
+    attachInterrupt(MOTOR_3_ENCODER_A, motor3_encoder_ISR, CHANGE);*/
+    
     // Initialize Microswitch Pins
     pinMode(MICROSWITCH_0, INPUT_PULLUP);
     pinMode(MICROSWITCH_1, INPUT_PULLUP);
     pinMode(MICROSWITCH_2, INPUT_PULLUP);
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
+    
     // Initialize MotorShield and Motors
     AFMS.begin();
     motor0->setSpeed(0);
@@ -229,7 +231,7 @@ void setup() {
     motor0->run(RELEASE);
     motor1->run(RELEASE);
     motor2->run(RELEASE);
-    motor3->run(RELEASE);*/
+    motor3->run(RELEASE);
 }
 
 void loop() {
@@ -272,7 +274,8 @@ void loop() {
                 
             case 'M':
                 for(int i = 0; i < quantity; i++) {
-                    setMotorCommandVelocity(mode, index, value);
+                    // Need to verify
+                    setMotorCommandVelocity(mode, (index + i) % 4, value);
                 }
                 break;
       

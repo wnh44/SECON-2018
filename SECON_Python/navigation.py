@@ -6,38 +6,37 @@ Description: This file contains functions and variables associated with
 
 import time
 
+# FIXME: Pins need to be changed to correct numbers
 
 """
     toStageA(location)
     - navigates to stage A (theoretically)
 """
 def toStageA(mainThread):
-    againstBackWall = 0
     microswitches = mainThread.Arduino.digitalRead(0, 2)
     againstBackWall = microswitches[0] & microswitches[1]  # I think '&' is right
 
+	# Move robot to back wall
+    moveRobotBackward(mainThread, 255)
     while againstBackWall == 0:
-        moveRobotForward(mainThread, 255)
         microswitches = mainThread.Arduino.digitalRead(0, 2)
         againstBackWall = microswitches[0] & microswitches[1]  # I think '&' is right
+	#stopRobot(mainThread)
 
+	# If Stage A location is 0, move left until reached
     if mainThread.locations[0] == 0:
-        atStageA = 0
-        while atStageA == 0:
-            otherStageA = mainThread.Arduino.analogRead(1, 1)
-            if otherStageA >= 37:
-                atStageA = 1
-            moveRobotLeft(mainThread, 255)
-        stopRobot(mainThread)
+        moveRobotLeft(mainThread, 255)
+        oppositeStageA = mainThread.Arduino.analogRead(1, 1)
+        while oppositeStageA[0] >= 37:
+			oppositeStageA = mainThread.Arduino.analogRead(1, 1)
 
-    elif mainThread.locations[0] == 1:
-        atStageA = 0
-        while atStageA == 0:
-            otherStageA = mainThread.Arduino.analogRead(0, 1)
-            if otherStageA >= 37:
-                atStageA = 1
-            moveRobotRight(mainThread, 255)
-        stopRobot(mainThread)
+	# If Stage A location is 1, move right until reached
+    else:
+        moveRobotRight(mainThread, 255)
+        oppositeStageA = mainThread.Arduino.analogRead(0, 1)
+        while oppositeStageA[0] >= 37:
+			oppositeStageA = mainThread.Arduino.analogRead(0, 1)
+	stopRobot(mainThread)
 
     return
 
@@ -47,7 +46,25 @@ def toStageA(mainThread):
     - navigates to center of the ship
 """
 def toCenterOfShip(mainThread):
-    return
+	# sides[0] -> Left side
+	# sides[1] -> Right side
+	sides = mainThread.Arduino.analogRead(0, 2)
+
+	# If Stage A location is 0, move right until center is reached
+	if mainThread.locations[0] == 0:
+		moveRobotRight(mainThread, 255)
+		while(sides[0] < sides[1]):
+			sides = mainThread.Arudino.analogRead(0, 2)
+		
+	# If Stage A location is 1, move left until center is reached
+	else:
+		moveRobotLeft(mainThread, 255)
+		while(sides[0] < sides[1]):
+			sides = mainThread.Arudino.analogRead(0, 2)
+			
+	stopRobot(mainThread)
+	
+	return
 
 
 """
@@ -71,12 +88,14 @@ def toStageB(mainThread):
     - navigates to the center of the playing field
 """
 def toCenterOfField():
+	
+	
     return
 
 
 """
     jacksonIsADouche(everyone, knows, this, already)
-    - This function just states the obvious
+    - This function just states the blatantly obvious
 """
 def jacksonIsADouche(everyone, knows, this, already):
     forever = True
@@ -137,16 +156,16 @@ def moveRobotBackward(mainThread, speed = 255):
     mainThread.Arduino.callArduinoFunction('C')
     return
 
-# NOTE: THE FOLLOWING TWO FUNCTIONS MIGHT BE INVERTED
+# FIXME: THE FOLLOWING TWO FUNCTIONS MIGHT BE INVERTED
 """
     moveRobotLeft(mainThread, speed)
     - commands robot left at designated speed
 """
 def moveRobotLeft(mainThread, speed = 255):
-    mainThread.Arduino.setMotorSpeed(0, 'F', 1, speed)
-    mainThread.Arduino.setMotorSpeed(1, 'B', 1, speed)
-    mainThread.Arduino.setMotorSpeed(2, 'F', 1, speed)
-    mainThread.Arduino.setMotorSpeed(3, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(0, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(1, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(2, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(3, 'F', 1, speed)
     mainThread.Arduino.callArduinoFunction('C')
     return
 
@@ -156,11 +175,51 @@ def moveRobotLeft(mainThread, speed = 255):
     - commands robot right at designated speed
 """
 def moveRobotRight(mainThread, speed = 255):
-    mainThread.Arduino.setMotorSpeed(0, 'B', 1, speed)
-    mainThread.Arduino.setMotorSpeed(1, 'F', 1, speed)
-    mainThread.Arduino.setMotorSpeed(2, 'B', 1, speed)
-    mainThread.Arduino.setMotorSpeed(3, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(0, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(1, 'B', 1, speed)
+    mainThread.Arduino.setMotorSpeed(2, 'F', 1, speed)
+    mainThread.Arduino.setMotorSpeed(3, 'B', 1, speed)
     mainThread.Arduino.callArduinoFunction('C')
+    return
+
+
+"""
+    turnRobotLeft(mainThread, speed)
+    - commands robot to turn left at designated speed
+"""
+def turnRobotLeft(mainThread, speed = 127):
+	mainThread.Arduino.setMotorSpeed(1, 'F', 2, speed)
+	mainThread.Arduino.callArduinoFunction('C')
+	
+	# Might be a better method
+	#mainThread.Arduino.setMotorSpeed(0, 'R', 1, speed)
+	#mainThread.Arduino.setMotorSpeed(1, 'F', 1, speed)
+	#mainThread.Arduino.callArduinoFunction('C')
+	
+	# Probably too fast
+	#mainThread.Arduino.setMotorSpeed(4, 'R', 2, speed)
+	#mainThread.Arduino.setMotorSpeed(1, 'F', 2, speed)
+	#mainThread.Arduino.callArduinoFunction('C')
+	return
+
+
+"""
+    turnRobotRight(mainThread, speed)
+    - commands robot to turn right at designated speed
+"""
+def turnRobotRight(mainThread, speed = 127):
+    mainThread.Arduino.setMotorSpeed(4, 'F', 2, speed)
+    mainThread.Arduino.callArduinoFunction('C')
+	
+	# Might be a better method
+    #mainThread.Arduino.setMotorSpeed(0, 'F', 1, speed)
+    #mainThread.Arduino.setMotorSpeed(1, 'R', 1, speed)
+    #mainThread.Arduino.callArduinoFunction('C')
+	
+	# Probably too fast
+    #mainThread.Arduino.setMotorSpeed(4, 'F', 2, speed)
+    #mainThread.Arduino.setMotorSpeed(1, 'R', 2, speed)
+    #mainThread.Arduino.callArduinoFunction('C')
     return
 
 

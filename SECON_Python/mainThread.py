@@ -8,7 +8,6 @@ from courseObjectives import *
 import RPi.GPIO as GPIO
 START_BUTTON = 23
 
-import time
 
 class MainThread(Thread):
     def __init__(self):
@@ -42,7 +41,7 @@ class MainThread(Thread):
         self.state = StateEnum(states)
 
     def run(self):
-        # FIXME: State machine is theorized for now
+        # FIXME: Theory, theory, theory...
 
         while 1:
             print(self.state)
