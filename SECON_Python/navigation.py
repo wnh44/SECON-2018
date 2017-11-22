@@ -13,17 +13,19 @@ import time
     - navigates to stage A (theoretically)
 """
 def toStageA(mainThread):
-    microswitches = mainThread.Arduino.digitalRead(0, 2)
+    microswitches = mainThread.Arduino.digitalRead(4, 2)
     againstBackWall = microswitches[0] & microswitches[1]  # I think '&' is right
 
-	# Move robot to back wall
+    # Move robot to back wall
     moveRobotBackward(mainThread, 255)
     while againstBackWall == 0:
-        microswitches = mainThread.Arduino.digitalRead(0, 2)
+        time.sleep(0.1)
+        print(microswitches)
+        microswitches = mainThread.Arduino.digitalRead(4, 2)
         againstBackWall = microswitches[0] & microswitches[1]  # I think '&' is right
-	#stopRobot(mainThread)
+    #stopRobot(mainThread)
 
-	# If Stage A location is 0, move left until reached
+    """# If Stage A location is 0, move left until reached
     if mainThread.locations[0] == 0:
         moveRobotLeft(mainThread, 255)
         oppositeStageA = mainThread.Arduino.analogRead(1, 1)
@@ -35,8 +37,8 @@ def toStageA(mainThread):
         moveRobotRight(mainThread, 255)
         oppositeStageA = mainThread.Arduino.analogRead(0, 1)
         while oppositeStageA[0] >= 37:
-			oppositeStageA = mainThread.Arduino.analogRead(0, 1)
-	stopRobot(mainThread)
+			oppositeStageA = mainThread.Arduino.analogRead(0, 1)"""
+    stopRobot(mainThread)
 
     return
 

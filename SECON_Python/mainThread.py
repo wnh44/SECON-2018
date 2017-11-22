@@ -5,6 +5,7 @@ from StateEnum import StateEnum
 from navigation import *
 from courseObjectives import *
 
+import time
 import RPi.GPIO as GPIO
 START_BUTTON = 23
 
@@ -14,7 +15,7 @@ class MainThread(Thread):
         Thread.__init__(self)
 
         # Initialize serial connection
-        self.Arduino = ArduinoSerial('/dev/ttyACM0', 57600)
+        self.Arduino = ArduinoSerial('/dev/ttyACM0', 19200)
         
         # self.locations contains the locations for stages A, B, and C
         self.locations = [0, 0, 0]
@@ -38,7 +39,8 @@ class MainThread(Thread):
                   'TO_SHIP',
                   'TO_STAGE_C',
                   'STAGE_C']
-        self.state = StateEnum(states)
+        self.state = StateEnum(states)  
+        time.sleep(1)
 
     def run(self):
         # FIXME: Theory, theory, theory...
@@ -49,9 +51,11 @@ class MainThread(Thread):
             # Waits for start, using GPIO on RasPi as an interrupt
             if self.state.currentState() == 'WAIT_FOR_START':
                 print('Awaiting start button...\n')
-                GPIO.wait_for_edge(START_BUTTON, GPIO.FALLING)
+                #GPIO.wait_for_edge(START_BUTTON, GPIO.FALLING)
+                time.sleep(5)
                 print('Start button pressed.')
-                self.state.next()
+                self.state.setCurrentState('TO_STAGE_A')
+                #self.state.next()
 
             # Decodes IR LED on starting square. Decoding function is in arduino
             # sketch because timing is crucial.
@@ -62,7 +66,8 @@ class MainThread(Thread):
             # Navigate to Stage A
             elif self.state.currentState() == 'TO_STAGE_A':
                 toStageA(self)
-                self.state.next()
+                self.state.setCurrentState('WAIT_FOR_START')
+                #self.state.next()
 
             # Activate Stage A
             elif self.state.currentState() == 'STAGE_A':

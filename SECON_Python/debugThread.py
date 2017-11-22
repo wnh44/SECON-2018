@@ -8,7 +8,7 @@ class debugListener(QtCore.QThread):
         QtCore.QThread.__init__(self, parent)
         self.signal = QtCore.SIGNAL("test Signal")
         
-        self.conn = serial.Serial('/dev/ttyUSB0', 115200)
+        self.conn = serial.Serial('/dev/ttyUSB0', 57600)
         self.conn.timeout = 1
         self.end = False
         time.sleep(1)

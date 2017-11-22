@@ -72,18 +72,23 @@ void setup() {
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
     
     // Set Interrupts for motor encoders
-    attachInterrupt(digitalPinToInterrupt(2), motor0_encoder_ISR, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(2), motor0_encoder_ISR, CHANGE);
     
     // Initialize MotorShield and Motors
     AFMS.begin();
-    motor0->setSpeed(0);
+    motor0->setSpeed(127);
     motor0->run(FORWARD);
-    motor1->setSpeed(0);
+    motor1->setSpeed(127);
     motor1->run(FORWARD);
-    motor2->setSpeed(0);
+    motor2->setSpeed(127);
     motor2->run(FORWARD);
-    motor3->setSpeed(0);
+    motor3->setSpeed(127);
     motor3->run(FORWARD);
+    
+    /*motor0->setSpeed(0);
+    motor1->setSpeed(0);
+    motor2->setSpeed(0);
+    motor3->setSpeed(0);*/
 }
 
 void loop() {

@@ -13,6 +13,7 @@
 /////////////////////////////////////////////
 
 // define desired serial port
+// NOTE: Debug serial port has to be Serial2 or Serial3 if interrupts are used
 #define DEBUG_SERIAL3
 
 #if defined(DEBUG_SERIAL1)
@@ -83,27 +84,27 @@
 /////////////////////
 
 // Encoder Pins
-#define MOTOR_0_ENCODER_A 0            // FIXME: values
-#define MOTOR_0_ENCODER_B 0
-#define MOTOR_1_ENCODER_A 0
-#define MOTOR_1_ENCODER_B 0
-#define MOTOR_2_ENCODER_A 0
-#define MOTOR_2_ENCODER_B 0
-#define MOTOR_3_ENCODER_A 0
-#define MOTOR_3_ENCODER_B 0
+#define MOTOR_0_ENCODER_A 18            // FIXME: values
+#define MOTOR_0_ENCODER_B 19
+#define MOTOR_1_ENCODER_A 20
+#define MOTOR_1_ENCODER_B 21
+#define MOTOR_2_ENCODER_A 22
+#define MOTOR_2_ENCODER_B 23
+#define MOTOR_3_ENCODER_A 24
+#define MOTOR_3_ENCODER_B 25
 
 // Microswitches
-#define MICROSWITCH_0 53
-#define MICROSWITCH_1 0
-#define MICROSWITCH_2 0
-#define MICROSWITCH_3 0
+#define MICROSWITCH_0 4
+#define MICROSWITCH_1 5
+#define MICROSWITCH_2 6
+#define MICROSWITCH_3 7
 
 // Ultrasonic Rangefinders
-#define RANGEFINDER_0 0
-#define RANGEFINDER_1 0
-#define RANGEFINDER_2 0
-#define RANGEFINDER_3 0
-#define RANGEFINDER_4 0
+#define RANGEFINDER_0 A8
+#define RANGEFINDER_1 A9
+#define RANGEFINDER_2 A10
+#define RANGEFINDER_3 A11
+#define RANGEFINDER_4 A12
 
 
 /////////////////////
@@ -111,7 +112,6 @@
 /////////////////////
 
 // Time Stamps
-volatile int temp;                                          // FIXME: No clue
 volatile int prevTime = 0;
 volatile int curTime = 0;
 
@@ -173,7 +173,7 @@ double motor3_Kd = 0.1;
 char operation, mode;
 int index, quantity, value;
 int digitalValue, analogValue;
-int pause = 5;
+int pause = 10;
 char serialMessage[9];
 
 
@@ -181,7 +181,7 @@ char serialMessage[9];
 // Motor Shield Variables //
 ////////////////////////////
 
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61);
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *motor0 = AFMS.getMotor(1);
 Adafruit_DCMotor *motor1 = AFMS.getMotor(2);
 Adafruit_DCMotor *motor2 = AFMS.getMotor(3);
@@ -192,13 +192,13 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 
 
 void setup() {
-    Serial.begin(57600);
-    Serial.setTimeout(100);
+    Serial.begin(19200);
+    Serial.setTimeout(500);
     
-    DEBUG_BEGIN(115200);
-    DEBUG_TIMEOUT(100);
+    DEBUG_BEGIN(57600);
+    DEBUG_TIMEOUT(500);
 
-    /*pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
+    pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_0_ENCODER_B, INPUT_PULLUP);
     pinMode(MOTOR_1_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_1_ENCODER_B, INPUT_PULLUP);
@@ -206,11 +206,12 @@ void setup() {
     pinMode(MOTOR_2_ENCODER_B, INPUT_PULLUP);
     pinMode(MOTOR_3_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_3_ENCODER_B, INPUT_PULLUP);
+    
     // Set Interrupts for Motor Encoders
-    attachInterrupt(MOTOR_0_ENCODER_A, motor0_encoder_ISR, CHANGE); 
-    attachInterrupt(MOTOR_1_ENCODER_A, motor1_encoder_ISR, CHANGE); 
-    attachInterrupt(MOTOR_2_ENCODER_A, motor2_encoder_ISR, CHANGE); 
-    attachInterrupt(MOTOR_3_ENCODER_A, motor3_encoder_ISR, CHANGE);*/
+    attachInterrupt(5, motor0_encoder_ISR, CHANGE); 
+    attachInterrupt(4, motor1_encoder_ISR, CHANGE); 
+    attachInterrupt(3, motor2_encoder_ISR, CHANGE); 
+    attachInterrupt(2, motor3_encoder_ISR, CHANGE);
     
     // Initialize Microswitch Pins
     pinMode(MICROSWITCH_0, INPUT_PULLUP);
@@ -238,12 +239,17 @@ void loop() {
     if (Serial.available() > 0) {
         memset(serialMessage, 0, sizeof(serialMessage));
         operation = Serial.read();
+        DEBUG_PRINTLN(operation);
         delay(pause); // May be necessary elsewhere
-        mode = Serial.read();
-        index = Serial.parseInt();
         
-        sprintf(serialMessage, "%c%c%c", operation, mode, index);
-        DEBUG_PRINTLN(serialMessage);
+        mode = Serial.read();
+        DEBUG_PRINTLN(mode);
+        delay(pause);
+        
+        index = Serial.parseInt();
+        DEBUG_PRINTLN(index);
+        delay(pause);
+        sprintf(serialMessage, "%c%c%d", operation, mode, index);
         
         if (Serial.read() == ':') {
             if (operation == 'W') {
@@ -258,7 +264,7 @@ void loop() {
                 sprintf(serialMessage, "%s%c%d", serialMessage, ':', value);  
             }
         }
-        //DEBUG_PRINTLN(sprintf(serialMessage, "Message Received: %s", serialMessage));
+        DEBUG_PRINTLN(serialMessage);
         
         switch(operation) {
             case 'F':
@@ -308,6 +314,7 @@ void loop() {
             default:
                 break;
         }
+        delay(pause);
     }
 }
 

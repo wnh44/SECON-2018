@@ -2,7 +2,7 @@ from mainThread import *
 from pyQtThread import *
 
     
-if __name__ == '__main__': 
+if __name__ == '__main__':
     mainThread = MainThread()
     mainThread.setName('mainThread')
     mainThread.daemon = True
@@ -11,6 +11,7 @@ if __name__ == '__main__':
     pyQtThread.setName('pyQtThread')
     pyQtThread.daemon = True
 
+    time.sleep(2)
     mainThread.start()
     pyQtThread.start()
 

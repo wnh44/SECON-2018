@@ -84,13 +84,16 @@ class ArduinoSerial():
 		RD12
     """
 
-    def digitalRead(self, pinNumber, quantity = 1):
+    def digitalRead(self, pinNumber, quantity = 1):  
         message = ''.join(('R', 'D', str(pinNumber), ':', str(quantity)))
+        print(message)
         self.conn.write(message.encode())
         readValues = self.conn.readline().decode().strip().split(':')
         readValues = list(map(int, readValues))
+        print(readValues)
         return readValues
-
+    
+    
     """
 	digitalWrite(pinNumber, writeValue)
 	- writes a value (writeValue) to a digital pin (pinNumber)
