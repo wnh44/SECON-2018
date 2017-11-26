@@ -5,79 +5,6 @@
 
 #include <Wire.h>
 #include "Adafruit_MotorShield.h"
-//#include "utility/Adafruit_MS_PWMServoDriver.h"
-
-
-
-/////////////////////////////////////////////
-// Defines for serial connection for debug //
-/////////////////////////////////////////////
-
-// define desired serial port
-// NOTE: Debug serial port has to be Serial2 or Serial3 if interrupts are used
-#define DEBUG_SERIAL3
-
-#if defined(DEBUG_SERIAL1)
-    #define DEBUG_BEGIN(x)        Serial1.begin(x)
-    #define DEBUG_TIMEOUT(x)      Serial1.setTimeout(x)
-    #define DEBUG_PRINT(x)        Serial1.print(x)
-    #define DEBUG_PRINT_DEC(x)    Serial1.print(x, DEC)
-    #define DEBUG_PRINT_HEX(x)    Serial1.print(x, HEX)
-    #define DEBUG_PRINT_0(x)      Serial1.print(x, 0)
-    #define DEBUG_PRINT_2(x)      Serial1.print(x, 2)
-    #define DEBUG_PRINT_4(x)      Serial1.print(x, 4)
-    #define DEBUG_PRINTLN(x)      Serial1.println(x)
-    #define DEBUG_PRINTLN_DEC(x)  Serial1.println(x, DEC)
-    #define DEBUG_PRINTLN_HEX(x)  Serial1.println(x, HEX)
-    #define DEBUG_PRINTLN_0(x)    Serial1.println(x, 0)
-    #define DEBUG_PRINTLN_2(x)    Serial1.println(x, 2)
-    #define DEBUG_PRINTLN_4(x)    Serial1.println(x, 4)
-#elif defined(DEBUG_SERIAL2)
-    #define DEBUG_BEGIN(x)        Serial2.begin(x)
-    #define DEBUG_TIMEOUT(x)      Serial2.setTimeout(x)
-    #define DEBUG_PRINT(x)        Serial2.print(x)
-    #define DEBUG_PRINT_DEC(x)    Serial2.print(x, DEC)
-    #define DEBUG_PRINT_HEX(x)    Serial2.print(x, HEX)
-    #define DEBUG_PRINT_0(x)      Serial2.print(x, 0)
-    #define DEBUG_PRINT_2(x)      Serial2.print(x, 2)
-    #define DEBUG_PRINT_4(x)      Serial2.print(x, 4)
-    #define DEBUG_PRINTLN(x)      Serial2.println(x)
-    #define DEBUG_PRINTLN_DEC(x)  Serial2.println(x, DEC)
-    #define DEBUG_PRINTLN_HEX(x)  Serial2.println(x, HEX)
-    #define DEBUG_PRINTLN_0(x)    Serial2.println(x, 0)
-    #define DEBUG_PRINTLN_2(x)    Serial2.println(x, 2)
-    #define DEBUG_PRINTLN_4(x)    Serial2.println(x, 4)
-#elif defined(DEBUG_SERIAL3)
-    #define DEBUG_BEGIN(x)        Serial3.begin(x)
-    #define DEBUG_TIMEOUT(x)      Serial3.setTimeout(x)
-    #define DEBUG_PRINT(x)        Serial3.print(x)
-    #define DEBUG_PRINT_DEC(x)    Serial3.print(x, DEC)
-    #define DEBUG_PRINT_HEX(x)    Serial3.print(x, HEX)
-    #define DEBUG_PRINT_0(x)      Serial3.print(x, 0)
-    #define DEBUG_PRINT_2(x)      Serial3.print(x, 2)
-    #define DEBUG_PRINT_4(x)      Serial3.print(x, 4)
-    #define DEBUG_PRINTLN(x)      Serial3.println(x)
-    #define DEBUG_PRINTLN_DEC(x)  Serial3.println(x, DEC)
-    #define DEBUG_PRINTLN_HEX(x)  Serial3.println(x, HEX)
-    #define DEBUG_PRINTLN_0(x)    Serial3.println(x, 0)
-    #define DEBUG_PRINTLN_2(x)    Serial3.println(x, 2)
-    #define DEBUG_PRINTLN_4(x)    Serial3.println(x, 4)
-#else
-    #define DEBUG_BEGIN(x)
-    #define DEBUG_TIMEOUT(x)
-    #define DEBUG_PRINT(x)
-    #define DEBUG_PRINT_DEC(x)
-    #define DEBUG_PRINT_HEX(x)
-    #define DEBUG_PRINT_0(x)
-    #define DEBUG_PRINT_2(x)
-    #define DEBUG_PRINT_4(x)
-    #define DEBUG_PRINTLN(x)
-    #define DEBUG_PRINTLN_DEC(x)
-    #define DEBUG_PRINTLN_HEX(x)
-    #define DEBUG_PRINTLN_0(x)
-    #define DEBUG_PRINTLN_2(x)
-    #define DEBUG_PRINTLN_4(x)
-#endif
 
 
 /////////////////////
@@ -85,7 +12,7 @@
 /////////////////////
 
 // Encoder Pins
-#define MOTOR_0_ENCODER_A 18            // FIXME: values
+#define MOTOR_0_ENCODER_A 18
 #define MOTOR_0_ENCODER_B 22
 #define MOTOR_1_ENCODER_A 19
 #define MOTOR_1_ENCODER_B 23
@@ -108,7 +35,7 @@
 #define RANGEFINDER_4 A12
 
 // Rangefinder0 RX pin
-#define RANGEFINDER_0_FX 0
+#define RANGEFINDER_0_RX 0
 
 // Start Button
 #define START_BUTTON 2
@@ -197,16 +124,6 @@ states state = WAIT_FOR_START;
 
 int locations[3] = {0, 0, 0};
 
-////////////////////////////////
-// Pi<->Mega Serial Variables //
-////////////////////////////////
-
-char operation, mode;
-int index, quantity, value;
-int digitalValue, analogValue;
-int pause = 10;
-char serialMessage[9];
-
 
 ////////////////////////////
 // Motor Shield Variables //
@@ -224,10 +141,6 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 
 void setup() {
     Serial.begin(9600);
-    Serial.setTimeout(500);
-    
-    DEBUG_BEGIN(57600);
-    DEBUG_TIMEOUT(500);
 
     pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
     pinMode(MOTOR_0_ENCODER_B, INPUT_PULLUP);
@@ -267,10 +180,9 @@ void setup() {
 
     digitalWrite(RANGEFINDER_0_RX, HIGH);
     delay(35);
-    digitalWrite(RANGE_FINDER_0_RX, LOW);
+    digitalWrite(RANGEFINDER_0_RX, LOW);
 }
 
-// New loop() with FSM implemented in C
 void loop() {
     Serial.print(state);
     switch(state) {
@@ -334,103 +246,19 @@ void loop() {
             break;
     }
 }
-
-
-void moveForward(int velocity = 255) {
-    motor0_commandVelocity = velocity;
-    motor1_commandVelocity = velocity;
-    motor2_commandVelocity = velocity;
-    motor3_commandVelocity = velocity;
-    motor0->run(FORWARD);
-    motor1->run(FORWARD);
-    motor2->run(FORWARD);
-    motor3->run(FORWARD);
-
-    commandMotors();
-}
-
-void moveBackward(int velocity = 255) {
-    motor0_commandVelocity = velocity;
-    motor1_commandVelocity = velocity;
-    motor2_commandVelocity = velocity;
-    motor3_commandVelocity = velocity;
-    motor0->run(BACKWARD);
-    motor1->run(BACKWARD);
-    motor2->run(BACKWARD);
-    motor3->run(BACKWARD);
-
-    commandMotors();
-}
-
-
-void moveLeft(int velocity = 255) {
-    motor0_commandVelocity = velocity;
-    motor1_commandVelocity = velocity;
-    motor2_commandVelocity = velocity;
-    motor3_commandVelocity = velocity;
-    motor0->run(BACKWARD);
-    motor1->run(FORWARD);
-    motor2->run(BACKWARD);
-    motor3->run(FORWARD);
-
-    commandMotors();
-}
-
-
-void moveRight(int velocity = 255) {
-    motor0_commandVelocity = velocity;
-    motor1_commandVelocity = velocity;
-    motor2_commandVelocity = velocity;
-    motor3_commandVelocity = velocity;
-    motor0->run(FORWARD);
-    motor1->run(BACKWARD);
-    motor2->run(FORWARD);
-    motor3->run(BACKWARD);
-
-    commandMotors();
-}
-
-
-void turnLeft(int velocity = 127) {
-    motor1_commandVelocity = velocity;
-    motor2_commandVelocity = velocity;
-    motor1->run(FORWARD);
-    motor2->run(FORWARD);
-
-    commandMotors();
-}
-
-
-void turnRight(int velocity = 127) {
-    motor0_commandVelocity = velocity;
-    motor3_commandVelocity = velocity;
-    motor0->run(FORWARD);
-    motor3->run(FORWARD);
-
-    commandMotors();
-}
-
-void stopMotors() {
-    motor0_commandVelocity = 0;
-    motor1_commandVelocity = 0;
-    motor2_commandVelocity = 0;
-    motor3_commandVelocity = 0;
-    motor0->run(RELEASE);
-    motor1->run(RELEASE);
-    motor2->run(RELEASE);
-    motor3->run(RELEASE);
-
-    commandMotors();
-}
-
 // FIXE: Comments
 
 void waitForStart() {
     while(!digitalRead(START_BUTTON)) {
-        // keep on keeping on
+        // Keep on keeping on
     }
     state = DECODE_LED;
 }
+
+
+////////////////
+// Decode LED //
+////////////////
 
 void decodeLED() {
     // FIXME: Returns a random number for now
@@ -447,24 +275,60 @@ void decodeLED() {
     state = TO_STAGE_A;
 }
 
-void toStageA() {
-    moveBackward();
 
-    while(digitalRead(MICROSWITCH_0) & digitalRead(MICROSWITCH_1) == 0) {
-        Serial.print(digitalRead(MICROSWITCH_0) & digitalRead(MICROSWITCH_1));
-        // keep on keeping on
+/////////////////////////
+// Navigate to stage A //
+/////////////////////////
+
+void toStageA() {
+    moveBackward(255);
+
+    // Originally was:
+    //while(digitalRead(MICROSWITCH_2) == 0 || digitalRead(MICROSWITCH_3) == 0) {
+    while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
+        // Keep on keeping on
     }
-    stopMotors();
-    
+
+    // Probably isn't necessary
+    stopRobot();
+
+    // Stage A location on North side of course
     if(locations[0] == 0) {
-        moveLeft();
+        // Move left towards Stage A
+        moveLeft(255);
+        while(analogRead(RANGEFINDER_1) < 33) {
+            // Keep on keeping on
+        }
+
+        // Slow down when ~5 in away
+        moveLeft(127);
+        while(analogRead(RANGEFINDER_1) < 38) {
+            // Keep on keeping on
+        }
     }
+    
+    // Stage A location on North side of course
+    else {
+        // Move right towards Stage A
+        moveRight(255);
+        while(analogRead(RANGEFINDER_0) < 33) {
+            // Keep on keeping on
+        }
+
+        // Slow down when ~5 in away
+        moveRight(127);
+        while(analogRead(RANGEFINDER_0) < 38) {
+            // Keep on keeping on
+        }
+    }
+
+    stopRobot();
     
     state = STAGE_A;
 }
 
 void stageA() {
-    
+    // FIXME: Stage A implementation
     state = FROM_STAGE_A;
 }
 
@@ -517,92 +381,6 @@ void stageC() {
     
     state = WAIT_FOR_START;
 } 
-
-/*
-// Old loop() which contained serial communication
-void loop() {
-    if (Serial.available() > 0) {
-        memset(serialMessage, 0, sizeof(serialMessage));
-        operation = Serial.read();
-        DEBUG_PRINTLN(operation);
-        delay(pause); // May be necessary elsewhere
-        
-        mode = Serial.read();
-        DEBUG_PRINTLN(mode);
-        delay(pause);
-        
-        index = Serial.parseInt();
-        DEBUG_PRINTLN(index);
-        delay(pause);
-        sprintf(serialMessage, "%c%c%d", operation, mode, index);
-        
-        if (Serial.read() == ':') {
-            if (operation == 'W') {
-                value = Serial.parseInt();
-                sprintf(serialMessage, "%s%c%d", serialMessage, ':', value);
-            } else {
-                quantity = Serial.parseInt();
-                sprintf(serialMessage, "%s%c%d", serialMessage, ':', quantity);
-            }
-            if (Serial.read() == ':') { // THIS WAS CHANGED!!! Hopefully still works.
-                value = Serial.parseInt();
-                sprintf(serialMessage, "%s%c%d", serialMessage, ':', value);  
-            }
-        }
-        DEBUG_PRINTLN(serialMessage);
-        
-        switch(operation) {
-            case 'F':
-                if (mode == 'L') {
-                    // FIXME: Will contain call to IR function
-                    break;
-                } else if (mode == 'C') {
-                    commandMotors();
-                    break;
-                } else {
-                    break;
-                }
-                
-            case 'M':
-                for(int i = 0; i < quantity; i++) {
-                    // Need to verify
-                    setMotorCommandVelocity(mode, (index + i) % 4, value);
-                }
-                break;
-      
-            case 'P':
-                pinModeLocal(index, mode);
-                break;
-                
-            case 'R':
-                if (mode == 'D') {
-                    digitalReadLocal(index, quantity);
-                    break;
-                } else if (mode == 'A') {
-                    analogReadLocal(index, quantity);
-                    break;
-                } else {
-                    break;
-                }
-              
-            case 'W':
-                if (mode == 'D') {
-                    digitalWriteLocal(index, value);
-                    break;
-                } else if (mode == 'A') {
-                    analogWriteLocal(index, value);
-                    break;
-                } else {
-                    break;
-                }
-      
-            default:
-                break;
-        }
-        delay(pause);
-    }
-}
-*/
 
 
 /////////////////////////////
@@ -717,126 +495,6 @@ void motor3_encoder_ISR() {
 }
 
 
-////////////////////////////////////
-// Serial Communication Functions //
-////////////////////////////////////
-
-/*
- *  Serial data is sent and received in the following manner:
- *
- *  {operation}{mode}{number}{:}{quantity}{:}{value}
- * 
- *  {operation}
- *    M: Set motor speed
- *    P: Set pin mode
- *    R: Read value
- *    W: Write value
- *    
- *  {mode}
- *    A: Analog
- *    D: Digital
- *    F: FORWARD
- *    I: INPUT
- *    O: OUTPUT
- *    P: INPUT_PULLUP
- *    R: BACKWARD
- *    
- *  {number}
- *    If M: Motor number to set.
- *    If P: Pin number to set mode of.
- *    If R: Pin number to read from.
- *    If W: Pin number to write to.
- *    
- *  {quantity}
- *    If M: Number of (sequential) motors to set.
- *    If P: N/A
- *    If R: Number of (sequential) inputs to read.
- *    If W: N/A
- *    
- *  {value}
- *    If M: Motor speed to set.
- *    If P: N/A
- *    If R: N/A
- *    If W: Value to write.
- *  
- *  Examples:
- *    Set Pin Mode:  PI4
- *    Digital Read:  DR7:3
- *    Digital Write: DW4:0
- *    Analog Read:   AR4:0
- *    Analog Write:  AW0:759
- *    Set Motor Speed:  MF0:4:255
- *    Set Motor Speed:  MR2:2:60
- */
-
-
-//////////////////////
-// Setting Pin Mode //
-//////////////////////
-
-void pinModeLocal(int pinNumber, char mode) {
-    switch(mode) {
-        case 'I':
-            pinMode(pinNumber, INPUT);
-            break;
-        case 'O':
-            pinMode(pinNumber, OUTPUT);
-            break;
-        case 'P':
-            pinMode(pinNumber, INPUT_PULLUP);
-            break;
-    }
-}
-
-
-//////////////////
-// Digital Read //
-//////////////////
-
-void digitalReadLocal(int pinNumber, int quantity) {
-    for (int i = 0; i < quantity - 1; i++) {
-        digitalValue = digitalRead(pinNumber + i);
-        Serial.print(digitalValue);
-        Serial.print(':');
-    }
-    digitalValue = digitalRead(pinNumber + quantity - 1);
-    Serial.println(digitalValue);
-}
-
-
-///////////////////
-// Digital Write //
-///////////////////
-
-void digitalWriteLocal(int pinNumber, int digitalValue) {
-    digitalWrite(pinNumber, digitalValue);
-}
-
-
-/////////////////
-// Analog Read //
-/////////////////
-
-void analogReadLocal(int pinNumber, int quantity) {
-    for (int i = 0; i < quantity - 1; i++) {
-        analogValue = analogRead(pinNumber + i);
-        Serial.print(analogValue);
-        Serial.print(':');
-    }
-    analogValue = analogRead(pinNumber + quantity - 1);
-    Serial.println(analogValue);
-}
-
-
-//////////////////
-// Analog Write //
-//////////////////
-
-void analogWriteLocal(int pinNumber, int analogValue) {
-    analogWrite(pinNumber, analogValue);
-}
-
-
 //////////////////////////////////
 // Set Motor Command Velocities //
 //////////////////////////////////
@@ -874,4 +532,121 @@ void commandMotors() {
     motor3->setSpeed(motor3_commandVelocity);
 }
 
+
+////////////////////////
+// Move Robot Forward //
+////////////////////////
+
+void moveForward(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = velocity;
+    motor0->run(FORWARD);
+    motor1->run(FORWARD);
+    motor2->run(FORWARD);
+    motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+/////////////////////////
+// Move Robot Backward //
+/////////////////////////
+
+void moveBackward(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = velocity;
+    motor0->run(BACKWARD);
+    motor1->run(BACKWARD);
+    motor2->run(BACKWARD);
+    motor3->run(BACKWARD);
+
+    commandMotors();
+}
+
+
+/////////////////////
+// Move Robot Left //
+/////////////////////
+
+void moveLeft(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = velocity;
+    motor0->run(BACKWARD);
+    motor1->run(FORWARD);
+    motor2->run(BACKWARD);
+    motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+//////////////////////
+// Move Robot Right //
+//////////////////////
+
+void moveRight(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = velocity;
+    motor0->run(FORWARD);
+    motor1->run(BACKWARD);
+    motor2->run(FORWARD);
+    motor3->run(BACKWARD);
+
+    commandMotors();
+}
+
+
+/////////////////////
+// Turn Robot Left //
+/////////////////////
+
+void turnLeft(int velocity) {
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity;
+    motor1->run(FORWARD);
+    motor2->run(FORWARD);
+
+    commandMotors();
+}
+
+
+//////////////////////
+// Turn Robot Right //
+//////////////////////
+
+void turnRight(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor3_commandVelocity = velocity;
+    motor0->run(FORWARD);
+    motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+////////////////
+// Stop Robot //
+////////////////
+
+void stopRobot() {
+    motor0_commandVelocity = 0;
+    motor1_commandVelocity = 0;
+    motor2_commandVelocity = 0;
+    motor3_commandVelocity = 0;
+    motor0->run(RELEASE);
+    motor1->run(RELEASE);
+    motor2->run(RELEASE);
+    motor3->run(RELEASE);
+
+    commandMotors();
+}
 
