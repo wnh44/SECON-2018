@@ -86,12 +86,12 @@
 
 // Encoder Pins
 #define MOTOR_0_ENCODER_A 18            // FIXME: values
-#define MOTOR_0_ENCODER_B 19
-#define MOTOR_1_ENCODER_A 20
-#define MOTOR_1_ENCODER_B 21
-#define MOTOR_2_ENCODER_A 22
-#define MOTOR_2_ENCODER_B 23
-#define MOTOR_3_ENCODER_A 24
+#define MOTOR_0_ENCODER_B 22
+#define MOTOR_1_ENCODER_A 19
+#define MOTOR_1_ENCODER_B 23
+#define MOTOR_2_ENCODER_A 20
+#define MOTOR_2_ENCODER_B 24
+#define MOTOR_3_ENCODER_A 21
 #define MOTOR_3_ENCODER_B 25
 
 // Microswitches
@@ -223,7 +223,7 @@ Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 
 
 void setup() {
-    Serial.begin(57600);
+    Serial.begin(9600);
     Serial.setTimeout(500);
     
     DEBUG_BEGIN(57600);

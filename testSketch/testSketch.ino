@@ -26,13 +26,13 @@
 #define RANGEFINDER_4 A12
 
 // Rangefinder0 RX pin
-#define RANGEFINDER_0_RX 0
+#define RANGEFINDER_0_RX 24
 
 // Start Button
 #define START_BUTTON 2
 
 void setup() {
-    Serial.begin(57600);
+    Serial.begin(9600);
     Serial.setTimeout(500);
     
     // Initialize Microswitch Pins
@@ -42,20 +42,34 @@ void setup() {
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
     pinMode(START_BUTTON, INPUT_PULLUP);
 
-    delay(250);
-    digitalWrite(RANGEFINDER_0_RX, HIGH);
+    pinMode(RANGEFINDER_0_RX, OUTPUT);
+    
+    digitalWrite(RANGEFINDER_0_RX, 1);
     delay(35);
-    digitalWrite(RANGEFINDER_0_RX, LOW);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    
+    delay(250);
 }
 
-void loop() {    
-    Serial.print(analogRead(RANGEFINDER_0));
+void loop() {
+    Serial.print((analogRead(RANGEFINDER_0) - 3) / 2 + 3);
     Serial.print(" ");
-    Serial.print(analogRead(RANGEFINDER_1));
+    Serial.print((analogRead(RANGEFINDER_1) - 3) / 2 + 3);
     Serial.print(" ");
-    Serial.print(analogRead(RANGEFINDER_2));
+    Serial.print((analogRead(RANGEFINDER_2) - 3) / 2 + 3);
     Serial.print(" ");
-    Serial.print(analogRead(RANGEFINDER_3));
+    Serial.print((analogRead(RANGEFINDER_3) - 3) / 2 + 3);
     Serial.print(" ");
-    Serial.println(analogRead(RANGEFINDER_4));
+    Serial.print((analogRead(RANGEFINDER_4) - 3) / 2);
+
+    Serial.print("   ");
+    Serial.print(digitalRead(MICROSWITCH_0));
+    Serial.print(digitalRead(MICROSWITCH_1));
+    Serial.print(digitalRead(MICROSWITCH_2));
+    Serial.println(digitalRead(MICROSWITCH_3));
+
+    digitalWrite(RANGEFINDER_0_RX, 1);
+    delay(35);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    delay(500);
 }
