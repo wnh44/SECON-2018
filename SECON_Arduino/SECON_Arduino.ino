@@ -35,7 +35,7 @@
 #define RANGEFINDER_4 A12
 
 // Rangefinder0 RX pin
-#define RANGEFINDER_0_RX 0
+#define RANGEFINDER_0_RX 24
 
 // Start Button
 #define START_BUTTON 2
@@ -249,8 +249,9 @@ void loop() {
 // FIXE: Comments
 
 void waitForStart() {
-    while(!digitalRead(START_BUTTON)) {
-        // Keep on keeping on
+    while(digitalRead(START_BUTTON)) {
+        Serial.println("not yet");
+        delay(100);
     }
     state = DECODE_LED;
 }
@@ -283,27 +284,49 @@ void decodeLED() {
 void toStageA() {
     moveBackward(255);
 
-    // Originally was:
-    //while(digitalRead(MICROSWITCH_2) == 0 || digitalRead(MICROSWITCH_3) == 0) {
     while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
-        // Keep on keeping on
+        if(digitalRead(MICROSWITCH_2)) {
+            turnLeft(127);
+        } else if(digitalRead(MICROSWITCH_3)) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
+        }
     }
 
     // Probably isn't necessary
     stopRobot();
 
     // Stage A location on North side of course
-    if(locations[0] == 0) {
-        // Move left towards Stage A
-        moveLeft(255);
-        while(analogRead(RANGEFINDER_1) < 33) {
-            // Keep on keeping on
+    if(locations[0] == 0) {    
+        // Move left towards Stage A    
+        while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 33) {
+            if(!digitalRead(MICROSWITCH_3)) {
+                slideBackLeft(255);
+            } else {
+                moveLeft(255);
+            }
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
-
+    
         // Slow down when ~5 in away
-        moveLeft(127);
-        while(analogRead(RANGEFINDER_1) < 38) {
-            // Keep on keeping on
+        while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 38) {
+            if(!digitalRead(MICROSWITCH_2) && !digitalRead(MICROSWITCH_3)) {
+                moveBackward(127);
+            } else {
+                moveLeft(127);
+            }
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
     }
     
