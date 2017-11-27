@@ -163,6 +163,9 @@ void setup() {
     pinMode(MICROSWITCH_2, INPUT_PULLUP);
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
     
+    // Initialize Start Button Pin
+    pinMode(START_BUTTON, INPUT_PULLUP);
+    
     // Initialize MotorShield and Motors
     AFMS.begin();
     motor0->setSpeed(0);
@@ -184,7 +187,6 @@ void setup() {
 }
 
 void loop() {
-    Serial.print(state);
     switch(state) {
         case (WAIT_FOR_START):
             waitForStart();
@@ -249,8 +251,9 @@ void loop() {
 // FIXE: Comments
 
 void waitForStart() {
+    Serial.println("\n\nWAIT_FOR_START");
+    
     while(digitalRead(START_BUTTON)) {
-        Serial.println("not yet");
         delay(100);
     }
     state = DECODE_LED;
@@ -262,7 +265,10 @@ void waitForStart() {
 ////////////////
 
 void decodeLED() {
+    Serial.println("\nDECODE_LED");
+    
     // FIXME: Returns a random number for now
+    randomSeed(analogRead(A14));
     for(int i = 0; i < 3; i++) {
         locations[i] = random(0, 2);
     }
@@ -282,6 +288,8 @@ void decodeLED() {
 /////////////////////////
 
 void toStageA() {
+    Serial.println("\nTO_STAGE_A");
+    
     moveBackward(255);
 
     while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
@@ -293,14 +301,9 @@ void toStageA() {
             moveBackward(255);
         }
     }
-
-    // Probably isn't necessary
-    stopRobot();
-
-    // Stage A location on North side of course
-    if(locations[0] == 0) {    
+    if(locations[0] == 0) {
         // Move left towards Stage A    
-        while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 33) {
+        while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 36) {
             if(!digitalRead(MICROSWITCH_3)) {
                 slideBackLeft(255);
             } else {
@@ -314,12 +317,26 @@ void toStageA() {
             delay(300);
         }
     
-        // Slow down when ~5 in away
+        // Slow down when ~2 in away
         while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 38) {
-            if(!digitalRead(MICROSWITCH_2) && !digitalRead(MICROSWITCH_3)) {
+            while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
                 moveBackward(127);
+            }
+            
+            moveLeft(127);
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+        }
+    } else {
+        // Move right towards Stage A    
+        while((analogRead(RANGEFINDER_0) - 3) / 2 + 3 < 35) {
+            if(!digitalRead(MICROSWITCH_2)) {
+                slideBackRight(255);
             } else {
-                moveLeft(127);
+                moveRight(255);
             }
             
             digitalWrite(RANGEFINDER_0_RX, 1);
@@ -328,79 +345,224 @@ void toStageA() {
             
             delay(300);
         }
+    
+        // Slow down when ~2 in away
+        while((analogRead(RANGEFINDER_0) - 3) / 2 + 3 < 37) {
+            while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
+                moveBackward(127);
+            }
+            
+            moveRight(127);
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+        }
+    }
+      
+    
+    moveBackward(255);
+    while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
+        if(digitalRead(MICROSWITCH_2)) {
+            turnLeft(127);
+        } else if(digitalRead(MICROSWITCH_3)) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
+        }
     }
     
-    // Stage A location on North side of course
-    else {
-        // Move right towards Stage A
-        moveRight(255);
-        while(analogRead(RANGEFINDER_0) < 33) {
-            // Keep on keeping on
-        }
-
-        // Slow down when ~5 in away
-        moveRight(127);
-        while(analogRead(RANGEFINDER_0) < 38) {
-            // Keep on keeping on
-        }
-    }
-
     stopRobot();
     
     state = STAGE_A;
 }
 
 void stageA() {
+    Serial.println("\nSTAGE_A");
+    
     // FIXME: Stage A implementation
     state = FROM_STAGE_A;
 }
 
 void fromStageA() {
+    Serial.println("\nFROM_STAGE_A");
+    
+    if(locations[0] == 0) {
+        // Move right towards center    
+        while(((analogRead(RANGEFINDER_1) - 3) / 2 + 3) - ((analogRead(RANGEFINDER_0) - 3) / 2 + 3) >= 4) {
+            if(!digitalRead(MICROSWITCH_2)) {
+                slideBackRight(255);
+            } else {
+                moveRight(255);
+            }
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
+        }
+    
+        // Slow down when ~2 in away
+        while(((analogRead(RANGEFINDER_1) - 3) / 2 + 3) != ((analogRead(RANGEFINDER_0) - 3) / 2 + 3)) {
+            while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
+                moveBackward(127);
+            }
+            moveRight(65);
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+        }
+    } else {
+        // Move left towards center    
+        while(((analogRead(RANGEFINDER_0) - 3) / 2 + 3) - ((analogRead(RANGEFINDER_1) - 3) / 2 + 3) >= 4) {
+            if(!digitalRead(MICROSWITCH_3)) {
+                slideBackLeft(255);
+            } else {
+                moveLeft(255);
+            }
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
+        }
+    
+        // Slow down when ~2 in away
+        while(((analogRead(RANGEFINDER_0) - 3) / 2 + 3) != ((analogRead(RANGEFINDER_1) - 3) / 2 + 3)) {
+            while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
+                moveBackward(127);
+            }
+            moveLeft(65);
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+        }
+    }
+    // For now
+    stopRobot();
     
     state = TO_STAGE_B;
 }
 
 void toStageB() {
+    Serial.println("\nTO_STAGE_B");
     
-    state = STAGE_B;
+    moveForward(255);
+    delay(10000); // Probably necessary
+    
+    while((analogRead(RANGEFINDER_4) - 3) / 2 + 3 >= 17) {
+        int rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+        int rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+        int rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+        int rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+        
+        int leftSum = rangefinder0 + rangefinder3;
+        int rightSum = rangefinder1 + rangefinder2;
+        
+        while(leftSum - rightSum >= 6) {
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+            
+            moveLeft(255);
+            
+            rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+            rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+            
+            leftSum = rangefinder0 + rangefinder3;
+            rightSum = rangefinder1 + rangefinder2;
+        }
+        
+        while(rightSum - leftSum >= 6) {    
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+            
+            moveRight(255);
+            
+            rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+            rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+            
+            leftSum = rangefinder0 + rangefinder3;
+            rightSum = rangefinder1 + rangefinder2;
+        }
+            
+        
+        if(rangefinder0 + rangefinder2 > rangefinder3 + rangefinder1) {
+            turnLeft(255);
+        } else if(rangefinder0 + rangefinder2 < rangefinder3 + rangefinder1) {
+            turnRight(255);
+        }
+            
+        digitalWrite(RANGEFINDER_0_RX, 1);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, 0);
+        delay(100);
+        moveForward(255);
+        delay(200);
+    }
+    stopRobot();
+    
+    state = STAGE_B; state = WAIT_FOR_START;
 }
 
 void stageB() {
+    Serial.println("\nSTAGE_B");
     
     state = TO_BOOTY;
 }
 
 void toBooty() {
+    Serial.println("\nTO_BOOTY");
     
     state = RETRIEVE_BOOTY;
 }
 
 void retrieveBooty() {
+    Serial.println("RETRIEVE_BOOTY");
     
     state = TO_FLAG;
 }
 
 void toFlag() {
+    Serial.println("\nTO_FLAG");
     
     state = RAISE_FLAG;
 }
 
 void raiseFlag() {
+    Serial.println("\nRAISE_FLAG");
     
-    state = RAISE_FLAG;
+    state = TO_SHIP;
 }
 
 void toShip() {
+    Serial.println("\nTO_SHIP");
     
     state = TO_STAGE_C;
 }
 
 void toStageC() {
+    Serial.println("\nTO_STAGE_C");
     
     state = STAGE_C;
 }
 
 void stageC() {
+    Serial.println("STAGE_C");
     
     state = WAIT_FOR_START;
 } 
@@ -651,6 +813,42 @@ void turnRight(int velocity) {
     motor3_commandVelocity = velocity;
     motor0->run(FORWARD);
     motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+///////////////////////////////////
+// Slide Robot Left and Backward //
+///////////////////////////////////
+
+void slideBackLeft(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = velocity / 2;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = velocity / 2;
+    motor0->run(BACKWARD);
+    motor1->run(FORWARD);
+    motor2->run(BACKWARD);
+    motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+////////////////////////////////////
+// Slide Robot Right and Backward //
+////////////////////////////////////
+
+void slideBackRight(int velocity) {
+    motor0_commandVelocity = velocity / 2;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity / 2;
+    motor3_commandVelocity = velocity;
+    motor0->run(FORWARD);
+    motor1->run(BACKWARD);
+    motor2->run(FORWARD);
+    motor3->run(BACKWARD);
 
     commandMotors();
 }

@@ -117,70 +117,76 @@ void setup() {
 }
 
 void loop() {
-    moveBackward(255);
-
-    while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
-        if(digitalRead(MICROSWITCH_2)) {
-            turnLeft(127);
-        } else if(digitalRead(MICROSWITCH_3)) {
-            turnRight(127);
-        } else {
-            moveBackward(255);
-        }
-    }
-
-    // Probably isn't necessary
-    stopRobot();
+    moveForward(255);
+    //delay(10000); // Probably will need.
     
-    // Move left towards Stage A    
-    while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 33) {
-        if(!digitalRead(MICROSWITCH_3)) {
-            slideBackLeft(255);
-        } else {
+    while((analogRead(RANGEFINDER_4) - 3) / 2 + 3 >= 17) {
+        int rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+        int rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+        int rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+        int rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+        
+        int leftSum = rangefinder0 + rangefinder3;
+        int rightSum = rangefinder1 + rangefinder2;
+        
+        Serial.print(rangefinder0); Serial.print(" ");
+        Serial.print(rangefinder1); Serial.print(" ");
+        Serial.print(rangefinder2); Serial.print(" ");
+        Serial.print(rangefinder3); Serial.print(" ");
+        Serial.print(leftSum); Serial.print(" ");
+        Serial.println(rightSum);
+        
+        while(leftSum - rightSum >= 6) {
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+            
             moveLeft(255);
+            
+            rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+            rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+            
+            leftSum = rangefinder0 + rangefinder3;
+            rightSum = rangefinder1 + rangefinder2;
         }
         
+        while(rightSum - leftSum >= 6) {    
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
+            
+            moveRight(255);
+            
+            rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+            rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+            
+            leftSum = rangefinder0 + rangefinder3;
+            rightSum = rangefinder1 + rangefinder2;
+        }
+            
+        
+        if(rangefinder0 + rangefinder2 > rangefinder3 + rangefinder1) {
+            turnLeft(255);
+        } else if(rangefinder0 + rangefinder2 < rangefinder3 + rangefinder1) {
+            turnRight(255);
+        }
+            
         digitalWrite(RANGEFINDER_0_RX, 1);
         delay(35);
         digitalWrite(RANGEFINDER_0_RX, 0);
-        
+        moveForward(255);
         delay(300);
     }
-
-    // Slow down when ~5 in away
-    while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 38) {
-        if(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
-            slideBackLeft(127);
-        } else {
-            moveLeft(127);
-        }
-        
-        digitalWrite(RANGEFINDER_0_RX, 1);
-        delay(35);
-        digitalWrite(RANGEFINDER_0_RX, 0);
-        delay(300);
-    }
-    
-    moveBackward(255);
-    while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
-        if(digitalRead(MICROSWITCH_2)) {
-            turnLeft(127);
-        } else if(digitalRead(MICROSWITCH_3)) {
-            turnRight(127);
-        } else {
-            moveBackward(255);
-        }
-    }
-    
     stopRobot();
+    
     while(1) {
-        Serial.println((analogRead(RANGEFINDER_1) - 3) / 2 + 3);
-        
-        digitalWrite(RANGEFINDER_0_RX, 1);
-        delay(35);
-        digitalWrite(RANGEFINDER_0_RX, 0);
-        
-        delay(250);
+        delay(1000);
     }
 }
 
@@ -288,8 +294,10 @@ void moveRight(int velocity) {
 /////////////////////
 
 void turnLeft(int velocity) {
+    motor0_commandVelocity = 0;
     motor1_commandVelocity = velocity;
     motor2_commandVelocity = velocity;
+    motor3_commandVelocity = 0;
     motor1->run(FORWARD);
     motor2->run(FORWARD);
 
@@ -303,6 +311,8 @@ void turnLeft(int velocity) {
 
 void turnRight(int velocity) {
     motor0_commandVelocity = velocity;
+    motor1_commandVelocity = 0;
+    motor2_commandVelocity = 0;
     motor3_commandVelocity = velocity;
     motor0->run(FORWARD);
     motor3->run(FORWARD);
@@ -311,9 +321,9 @@ void turnRight(int velocity) {
 }
 
 
-/////////////////////
-// Move Robot Left //
-/////////////////////
+///////////////////////////////////
+// Slide Robot Left and Backward //
+///////////////////////////////////
 
 void slideBackLeft(int velocity) {
     motor0_commandVelocity = velocity;
@@ -324,6 +334,24 @@ void slideBackLeft(int velocity) {
     motor1->run(FORWARD);
     motor2->run(BACKWARD);
     motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+////////////////////////////////////
+// Slide Robot Right and Backward //
+////////////////////////////////////
+
+void slideBackRight(int velocity) {
+    motor0_commandVelocity = velocity / 2;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity / 2;
+    motor3_commandVelocity = velocity;
+    motor0->run(FORWARD);
+    motor1->run(BACKWARD);
+    motor2->run(FORWARD);
+    motor3->run(BACKWARD);
 
     commandMotors();
 }
