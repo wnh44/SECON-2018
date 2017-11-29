@@ -67,6 +67,17 @@ uint8_t motor3_commandVelocity = 0;
 int locations[3] = {0, 0, 0};
 
 
+///////////////////////////
+// Rangefinder Variables //
+///////////////////////////
+
+int rangefinder0;
+int rangefinder1;
+int rangefinder2;
+int rangefinder3;
+int rangefinder4;
+
+
 ////////////////////////////
 // Motor Shield Variables //
 ////////////////////////////
@@ -112,82 +123,24 @@ void setup() {
     digitalWrite(RANGEFINDER_0_RX, 1);
     delay(35);
     digitalWrite(RANGEFINDER_0_RX, 0);
-    
     delay(300);
 }
 
 void loop() {
-    moveForward(255);
-    //delay(10000); // Probably will need.
+    Serial.println("\n\nWAIT_FOR_START");
     
-    while((analogRead(RANGEFINDER_4) - 3) / 2 + 3 >= 17) {
-        int rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
-        int rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
-        int rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-        int rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-        
-        int leftSum = rangefinder0 + rangefinder3;
-        int rightSum = rangefinder1 + rangefinder2;
-        
-        Serial.print(rangefinder0); Serial.print(" ");
-        Serial.print(rangefinder1); Serial.print(" ");
-        Serial.print(rangefinder2); Serial.print(" ");
-        Serial.print(rangefinder3); Serial.print(" ");
-        Serial.print(leftSum); Serial.print(" ");
-        Serial.println(rightSum);
-        
-        while(leftSum - rightSum >= 6) {
-            digitalWrite(RANGEFINDER_0_RX, 1);
-            delay(35);
-            digitalWrite(RANGEFINDER_0_RX, 0);
-            delay(300);
-            
-            moveLeft(255);
-            
-            rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
-            rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
-            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-            
-            leftSum = rangefinder0 + rangefinder3;
-            rightSum = rangefinder1 + rangefinder2;
-        }
-        
-        while(rightSum - leftSum >= 6) {    
-            digitalWrite(RANGEFINDER_0_RX, 1);
-            delay(35);
-            digitalWrite(RANGEFINDER_0_RX, 0);
-            delay(300);
-            
-            moveRight(255);
-            
-            rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
-            rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
-            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-            
-            leftSum = rangefinder0 + rangefinder3;
-            rightSum = rangefinder1 + rangefinder2;
-        }
-            
-        
-        if(rangefinder0 + rangefinder2 > rangefinder3 + rangefinder1) {
-            turnLeft(255);
-        } else if(rangefinder0 + rangefinder2 < rangefinder3 + rangefinder1) {
-            turnRight(255);
-        }
-            
-        digitalWrite(RANGEFINDER_0_RX, 1);
-        delay(35);
-        digitalWrite(RANGEFINDER_0_RX, 0);
-        moveForward(255);
-        delay(300);
+    while(digitalRead(START_BUTTON)) {
+        delay(100);
     }
+    
+    //moveForward(255);
+    moveLeft(255);
+    //moveRight(255);
+    jacksonIsABitch(true);
+    delay(22500);
     stopRobot();
     
-    while(1) {
-        delay(1000);
-    }
+    //stopRobot();
 }
 
 
@@ -348,6 +301,42 @@ void slideBackRight(int velocity) {
     motor1_commandVelocity = velocity;
     motor2_commandVelocity = velocity / 2;
     motor3_commandVelocity = velocity;
+    motor0->run(FORWARD);
+    motor1->run(BACKWARD);
+    motor2->run(FORWARD);
+    motor3->run(BACKWARD);
+
+    commandMotors();
+}
+
+
+///////////////////////////////////
+// Slide Robot Left and Backward //
+///////////////////////////////////
+
+void slideFrontLeft(int velocity) {
+    motor0_commandVelocity = velocity / 2;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity / 2;
+    motor3_commandVelocity = velocity;
+    motor0->run(BACKWARD);
+    motor1->run(FORWARD);
+    motor2->run(BACKWARD);
+    motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+////////////////////////////////////
+// Slide Robot Right and Backward //
+////////////////////////////////////
+
+void slideFrontRight(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = velocity / 2;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = velocity / 2;
     motor0->run(FORWARD);
     motor1->run(BACKWARD);
     motor2->run(FORWARD);
