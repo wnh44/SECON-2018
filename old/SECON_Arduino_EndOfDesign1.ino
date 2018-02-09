@@ -1,7 +1,3 @@
-// SECON_Arduino.ino
-// Description: This is the current version of the SECON2018 robot.
-//              Hopefully it's not broken...
-
 
 ///////////////
 // Libraries //
@@ -14,6 +10,16 @@
 /////////////////////
 // Pin Definitions //
 /////////////////////
+
+// Encoder Pins
+#define MOTOR_0_ENCODER_A 18
+#define MOTOR_0_ENCODER_B 22
+#define MOTOR_1_ENCODER_A 19
+#define MOTOR_1_ENCODER_B 23
+#define MOTOR_2_ENCODER_A 20
+#define MOTOR_2_ENCODER_B 24
+#define MOTOR_3_ENCODER_A 21
+#define MOTOR_3_ENCODER_B 25
 
 // Microswitches
 #define MICROSWITCH_0 4
@@ -34,8 +40,64 @@
 // Start Button
 #define START_BUTTON 2
 
-// Restart Button (same pin as the start button)
-#define RESTART_BUTTON 2
+
+/////////////////////
+// Motor Variables //
+/////////////////////
+
+// Time Stamps
+volatile int prevTime = 0;
+volatile int curTime = 0;
+
+// Encoder Counts
+volatile int motor0_encoder = 0;
+volatile int motor1_encoder = 0;
+volatile int motor2_encoder = 0;
+volatile int motor3_encoder = 0;
+
+// Velocity Averages
+double motor0_encoderVelocities[5] = {0, 0, 0, 0, 0};
+double motor1_encoderVelocities[5] = {0, 0, 0, 0, 0};
+double motor2_encoderVelocities[5] = {0, 0, 0, 0, 0};
+double motor3_encoderVelocities[5] = {0, 0, 0, 0, 0};
+
+// Motor Velocities (mm/sec)
+double motor0_velocity = 0;
+double motor1_velocity = 0;
+double motor2_velocity = 0;
+double motor3_velocity = 0;
+
+// Command Velocities (mm/sec)
+uint8_t motor0_commandVelocity = 0;
+uint8_t motor1_commandVelocity = 0;
+uint8_t motor2_commandVelocity = 0;
+uint8_t motor3_commandVelocity = 0;
+
+// PWM Commands
+double motor0_pwm = 0;
+double motor1_pwm = 0;
+double motor2_pwm = 0;
+double motor3_pwm = 0;
+
+// Motor 0 PID
+double motor0_Kp = 1.4;
+double motor0_Ki = 6.0;
+double motor0_Kd = 0.1;
+
+// Motor 1 PID
+double motor1_Kp = 1.4;
+double motor1_Ki = 6.0;
+double motor1_Kd = 0.1;
+
+// Motor 2 PID
+double motor2_Kp = 1.4;
+double motor2_Ki = 6.0;
+double motor2_Kd = 0.1;
+
+// Motor 3 PID
+double motor3_Kp = 1.4;
+double motor3_Ki = 6.0;
+double motor3_Kd = 0.1;
 
 
 /////////////////////
@@ -60,11 +122,6 @@ enum states {
 };
 states state = WAIT_FOR_START;
 
-
-//////////////////////
-// Course Variables //
-//////////////////////
-
 int locations[3] = {0, 0, 0};
 
 
@@ -79,37 +136,37 @@ int rangefinder3;
 int rangefinder4;
 
 
-/////////////////////
-// Motor Variables //
-/////////////////////
+////////////////////////////
+// Motor Shield Variables //
+////////////////////////////
 
-// Motor Shield Variables
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *motor0 = AFMS.getMotor(1);
 Adafruit_DCMotor *motor1 = AFMS.getMotor(2);
 Adafruit_DCMotor *motor2 = AFMS.getMotor(3);
 Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
 
-// Command Velocities (0-255)
-uint8_t motor0_commandVelocity = 0;
-uint8_t motor1_commandVelocity = 0;
-uint8_t motor2_commandVelocity = 0;
-uint8_t motor3_commandVelocity = 0;
+// PID if necessary
+// PID FL_PID(&vel, &pwm, &cmd_vel, Kp, Ki, Kd, DIRECT);
 
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: setup()                                                                //
-// Description: Initialize variables, serial connections, preheat the oven, blah,   //
-//              blah, blah, yakety yak                                              //
-//////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
     Serial.begin(9600);
+
+    pinMode(MOTOR_0_ENCODER_A, INPUT_PULLUP);
+    pinMode(MOTOR_0_ENCODER_B, INPUT_PULLUP);
+    pinMode(MOTOR_1_ENCODER_A, INPUT_PULLUP);
+    pinMode(MOTOR_1_ENCODER_B, INPUT_PULLUP);
+    pinMode(MOTOR_2_ENCODER_A, INPUT_PULLUP);
+    pinMode(MOTOR_2_ENCODER_B, INPUT_PULLUP);
+    pinMode(MOTOR_3_ENCODER_A, INPUT_PULLUP);
+    pinMode(MOTOR_3_ENCODER_B, INPUT_PULLUP);
     
     // Set Interrupts for Motor Encoders
-    //attachInterrupt(5, motor0_encoder_ISR, CHANGE);
+    attachInterrupt(5, motor0_encoder_ISR, CHANGE); 
+    attachInterrupt(4, motor1_encoder_ISR, CHANGE); 
+    attachInterrupt(3, motor2_encoder_ISR, CHANGE); 
+    attachInterrupt(2, motor3_encoder_ISR, CHANGE);
     
     // Initialize Microswitch Pins
     pinMode(MICROSWITCH_0, INPUT_PULLUP);
@@ -117,44 +174,28 @@ void setup() {
     pinMode(MICROSWITCH_2, INPUT_PULLUP);
     pinMode(MICROSWITCH_3, INPUT_PULLUP);
     
-    // Initialize Start Button Pin (also initializes restart)
+    // Initialize Start Button Pin
     pinMode(START_BUTTON, INPUT_PULLUP);
     
-    // Initialize MotorShield
+    // Initialize MotorShield and Motors
     AFMS.begin();
-
-    // Initialize motor speed to 0
     motor0->setSpeed(0);
     motor1->setSpeed(0);
     motor2->setSpeed(0);
-    motor3->setSpeed(0);  
-
-    // Set initial direction to FORWARD
+    motor3->setSpeed(0);    
     motor0->run(FORWARD);
     motor1->run(FORWARD);
     motor2->run(FORWARD);
     motor3->run(FORWARD);
-
-    // Release motors
     motor0->run(RELEASE);
     motor1->run(RELEASE);
     motor2->run(RELEASE);
     motor3->run(RELEASE);
 
-    // Allow time for rangefinders to calibrate
-    delay(350);
-    
-    // Initialize rangefinder sequence
     digitalWrite(RANGEFINDER_0_RX, HIGH);
     delay(35);
     digitalWrite(RANGEFINDER_0_RX, LOW);
 }
-
-
-//////////////////////////////////////////////////////////
-// Function: loop()                                     //
-// Description: Main loop that houses the state machine //
-//////////////////////////////////////////////////////////
 
 void loop() {
     switch(state) {
@@ -218,13 +259,7 @@ void loop() {
             break;
     }
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: waitForStart()                                                         //
-// Description: Waits at the statring square for the start button to be pressed.    //
-//              This will be updated to wait for PWM signal from the IRLED.         //
-//////////////////////////////////////////////////////////////////////////////////////
+// FIXE: Comments
 
 void waitForStart() {
     Serial.println("\n\nWAIT_FOR_START");
@@ -237,11 +272,9 @@ void waitForStart() {
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: decodeLED()                                                            //
-// Description: Decodes the LED. For now this function just returns a "random"      //
-//              array until the LED is implemented.                                 //
-//////////////////////////////////////////////////////////////////////////////////////
+////////////////
+// Decode LED //
+////////////////
 
 void decodeLED() {
     Serial.println("\nDECODE_LED");
@@ -264,10 +297,9 @@ void decodeLED() {
 }
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: toStageA()                                                             //
-// Description: Navigates to stage A                                                //
-//////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////
+// Navigate to stage A //
+/////////////////////////
 
 void toStageA() {
     Serial.println("\nTO_STAGE_A");
@@ -284,40 +316,38 @@ void toStageA() {
             moveBackward(255);
         }
     }
-
-    // Navigate to left (0) Stage A
+    
     if(locations[0] == 0) {
-        
-        // Move left towards Stage A. If leading microswitch is deactivated, robot
-        // slides until contact is reestablished
+        // Move left towards Stage A    
         while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 36) {
             if(!digitalRead(MICROSWITCH_3)) {
                 slideBackLeft(255);
             } else {
                 moveLeft(255);
             }
-
-            // Delay for new range data
-            delay(250);
+            
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
     
-        // Slow down when ~2 in away while maintaining contact with back wall
+        // Slow down when ~2 in away
         while((analogRead(RANGEFINDER_1) - 3) / 2 + 3 < 38) {
             while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
                 moveBackward(127);
             }
+            
             moveLeft(127);
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
         }
-    }
-    
-    // Navigate to right (1) Stage A
-    else {
-        
-        // Move right towards Stage A. If leading microswitch is deactivated, robot
-        // slides until contact is reestablished
+    } else {
+        // Move right towards Stage A    
         while((analogRead(RANGEFINDER_0) - 3) / 2 + 3 < 35) {
             if(!digitalRead(MICROSWITCH_2)) {
                 slideBackRight(255);
@@ -325,23 +355,28 @@ void toStageA() {
                 moveRight(255);
             }
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
     
-        // Slow down when ~2 in away while maintaining contact with back wall
+        // Slow down when ~2 in away
         while((analogRead(RANGEFINDER_0) - 3) / 2 + 3 < 36) {
             while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
                 moveBackward(127);
             }
+            
             moveRight(127);
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
         }
     }
-
-    // Straighten up on back wall
+       
     moveBackward(255);
     while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
         if(digitalRead(MICROSWITCH_2)) {
@@ -354,16 +389,9 @@ void toStageA() {
     }
     
     stopRobot();
-
-    // Proceed to Stage A
+    
     state = STAGE_A;
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: stageA()                                                               //
-// Description: Activates stage A. This probably won't be necessary.                //
-//////////////////////////////////////////////////////////////////////////////////////
 
 void stageA() {
     Serial.println("\nSTAGE_A");
@@ -372,18 +400,11 @@ void stageA() {
     state = FROM_STAGE_A;
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: fromStageA()                                                           //
-// Description: Navigates from stage A                                              //
-//////////////////////////////////////////////////////////////////////////////////////
-
 void fromStageA() {
     Serial.println("\nFROM_STAGE_A");
-
-    // Navigate to center of ship from left (0) Stage A
+    
     if(locations[0] == 0) {
-        // Move right towards center
+        // Move right towards center    
         while(((analogRead(RANGEFINDER_1) - 3) / 2 + 3) - ((analogRead(RANGEFINDER_0) - 3) / 2 + 3) >= 4) {
             if(!digitalRead(MICROSWITCH_2)) {
                 slideBackRight(255);
@@ -391,8 +412,11 @@ void fromStageA() {
                 moveRight(255);
             }
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
     
         // Slow down when ~2 in away
@@ -402,8 +426,10 @@ void fromStageA() {
             }
             moveRight(65);
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
         }
     } else {
         // Move left towards center
@@ -424,8 +450,11 @@ void fromStageA() {
                 moveLeft(255);
             }
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
         Serial.print((analogRead(RANGEFINDER_0) - 3) / 2 + 3);
         Serial.print(" ");
@@ -439,8 +468,10 @@ void fromStageA() {
             }
             moveLeft(65);
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
         }
     }
     // For now
@@ -448,12 +479,6 @@ void fromStageA() {
     
     state = TO_STAGE_B;
 }
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: toStageB()                                                             //
-// Description: Navigates to stage B                                                //
-//////////////////////////////////////////////////////////////////////////////////////
 
 void toStageB() {
     Serial.println("\nTO_STAGE_B");
@@ -472,14 +497,14 @@ void toStageB() {
         int rightSum = rangefinder1 + rangefinder2;
         
         while((leftSum - rightSum) >= 4) {
-            
-            // Correct robot to left while waiting on sensors (might as well multitask)
             moveLeft(255);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
             delay(100);
             moveForward(255);
-            delay(150);
-
-            // Update sensor values and calculate again
+            delay(200);
+            
             rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
             rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
             rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
@@ -490,14 +515,14 @@ void toStageB() {
         }
         
         while((rightSum - leftSum) >= 4) {
-            
-            // Correct robot to right while waiting on sensors (nobody likes timewasters)
             moveRight(255);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
             delay(100);
             moveForward(255);
-            delay(150);
-
-            // Update sensor values and calculate again
+            delay(200);
+            
             rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
             rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
             rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
@@ -513,49 +538,55 @@ void toStageB() {
         } else if((rangefinder0 + rangefinder2) < (rangefinder3 + rangefinder1)) {
             turnRight(255);
         }
-        
-        // Turn robot left or right while waiting on sensors (you know the drill)
+            
+        digitalWrite(RANGEFINDER_0_RX, 1);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, 0);
         delay(100);
         moveForward(255);
         delay(200);
     }
     stopRobot();
     
+    digitalWrite(RANGEFINDER_0_RX, 1);
+    delay(35);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    delay(300);
+    
     rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
     rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
     rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
     rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
     
-    // This is a tweakable variable to ensure robot is in the center
-    int enough = 1;
-
-    // Straighten up in the center
-    while((abs((rangefinder0 + rangefinder2) - (rangefinder3 + rangefinder1)) <= 1) || (enough > 0)) {
-
-        // Decrements enough variable if conditions are favorable
+    // Straighten up
+    int enough = 0;
+    while((abs((rangefinder0 + rangefinder2) - (rangefinder3 + rangefinder1)) <= 1) || (enough < 1)) {
         if(abs((rangefinder0 + rangefinder2) - (rangefinder3 + rangefinder1)) <= 1) {
-            enough--;
-        }
-
-        // Turns robot if needed
+            enough++;
+        }  
+      
+        digitalWrite(RANGEFINDER_0_RX, 1);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, 0);
+        
         if((rangefinder0 + rangefinder2) > (rangefinder3 + rangefinder1)) {
             turnLeft(63);
+            delay(150);
+            stopRobot();
         } else if((rangefinder0 + rangefinder2) < (rangefinder3 + rangefinder1)) {
             turnRight(63);
+            delay(150);
+            stopRobot();
         }
-
-        // Always waiting on sensors...
-        delay(150);
-        stopRobot();
-        delay(100);
+        
+        delay(300);
 
         rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
         rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
         rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
         rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
     }
-
-    // Move left towards Stage B (0)
+    
     moveLeft(255);
 
     rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
@@ -576,8 +607,10 @@ void toStageB() {
         }
         moveLeft(255);
         
-        // Delay for new range data
-        delay(250);
+        digitalWrite(RANGEFINDER_0_RX, 1);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, 0);
+        delay(300);
         
         rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
         rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
@@ -599,16 +632,20 @@ void toStageB() {
         }
         moveLeft(127);
         
-        // Delay for new range data
-        delay(250);
+        digitalWrite(RANGEFINDER_0_RX, 1);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, 0);
+        delay(300);
         
         rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
         rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
     }
     turnRight(255);
     
-    // Delay for new range data
-    delay(250);
+    digitalWrite(RANGEFINDER_0_RX, 1);
+    delay(35);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    delay(300);
     stopRobot();
     
     state = STAGE_B;
@@ -687,8 +724,10 @@ void toBooty() {
         }
     }*/
     
-    // Delay for new range data
-    delay(150);
+    digitalWrite(RANGEFINDER_0_RX, 1);
+    delay(35);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    delay(100);
     
     rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
     rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
@@ -800,9 +839,10 @@ void toBooty() {
     }
     
     stopRobot();
-    
-    // Delay for new range data
-    delay(250);
+    digitalWrite(RANGEFINDER_0_RX, 1);
+    delay(35);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    delay(300);
     
     state = RETRIEVE_BOOTY;
 }
@@ -859,16 +899,20 @@ void toShip() {
             enough++;
         }
 
-        // Delay for new range data
-        delay(250);
+        digitalWrite(RANGEFINDER_0_RX, 1);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, 0);
+        delay(300);
         
         rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
     }
     
     stopRobot();
     
-    // Delay for new range data
-    delay(250);
+    digitalWrite(RANGEFINDER_0_RX, 1);
+    delay(35);
+    digitalWrite(RANGEFINDER_0_RX, 0);
+    delay(300);
     
     turnRight(255);
     delay(1000);
@@ -898,8 +942,11 @@ void toStageC() {
                 moveLeft(255);
             }
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
     
         // Slow down when ~2 in away
@@ -907,10 +954,13 @@ void toStageC() {
             while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
                 moveBackward(127);
             }
+            
             moveLeft(127);
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
         }
     } else {
         // Move right towards Stage C    
@@ -921,8 +971,11 @@ void toStageC() {
                 moveRight(255);
             }
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            
+            delay(300);
         }
     
         // Slow down when ~2 in away
@@ -930,10 +983,13 @@ void toStageC() {
             while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
                 moveBackward(127);
             }
+            
             moveRight(127);
             
-            // Delay for new range data
-            delay(250);
+            digitalWrite(RANGEFINDER_0_RX, 1);
+            delay(35);
+            digitalWrite(RANGEFINDER_0_RX, 0);
+            delay(300);
         }
     }
     
@@ -973,6 +1029,116 @@ void motor0_encoder_ISR() {
 
     // Resumes interrupts
     sei();
+    }
+}
+
+
+/////////////////////////////
+// ISR for Motor 1 Encoder //
+/////////////////////////////
+
+void motor1_encoder_ISR() {
+    // Halts interrupts
+    cli();
+    
+    static volatile int enc;
+    
+    // Reads the two pins and xors them
+    //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
+    
+    switch(enc) {
+        case (0b1):  // CCW Forward
+            motor1_encoder--;
+            break;
+        
+        case (0b0):  // CW Backwards
+            motor1_encoder++;
+            break;
+
+    // Resumes interrupts
+    sei();
+    }
+}
+
+
+/////////////////////////////
+// ISR for Motor 2 Encoder //
+/////////////////////////////
+
+void motor2_encoder_ISR() {
+    // Halts interrupts
+    cli();
+    
+    static volatile int enc;
+    
+    // Reads the two pins and xors them
+    //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
+    
+    switch(enc) {
+        case (0b1):  // CCW Forward
+            motor2_encoder--;
+            break;
+        
+        case (0b0):  // CW Backwards
+            motor2_encoder++;
+            break;
+
+    // Resumes interrupts
+    sei();
+    }
+}
+
+
+/////////////////////////////
+// ISR for Motor 3 Encoder //
+/////////////////////////////
+
+void motor3_encoder_ISR() {
+    // Halts interrupts
+    cli();
+    
+    static volatile int enc;
+    
+    // Reads the two pins and xors them
+    //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
+    
+    switch(enc) {
+        case (0b1):  // CCW Forward
+            motor3_encoder--;
+            break;
+        
+        case (0b0):  // CW Backwards
+            motor3_encoder++;
+            break;
+
+    // Resumes interrupts
+    sei();
+    }
+}
+
+
+//////////////////////////////////
+// Set Motor Command Velocities //
+//////////////////////////////////
+
+void setMotorCommandVelocity(char mode, int motorNumber, uint8_t value) {
+    switch(motorNumber) {
+        case 0:
+            if(mode == 'R') motor0->run(BACKWARD);
+            else motor0->run(FORWARD);
+            motor0_commandVelocity = value;
+        case 1:
+            if(mode == 'R') motor1->run(BACKWARD);
+            else motor1->run(FORWARD);
+            motor1_commandVelocity = value;
+        case 2:
+            if(mode == 'R') motor2->run(BACKWARD);
+            else motor2->run(FORWARD);
+            motor2_commandVelocity = value;
+        case 3:
+            if(mode == 'R') motor3->run(BACKWARD);
+            else motor3->run(FORWARD);
+            motor3_commandVelocity = value;
     }
 }
 
