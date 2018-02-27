@@ -959,7 +959,7 @@ void readRangefinders(int wait = 300) {
 // Read Microswitches //
 ////////////////////////
 
-void readMicroswitches() {    
+void readMicroswitches() {
     microswitch0 = digitalRead(MICROSWITCH_0);
     Serial2.print('U0:');
     Serial2.println(microswitch0);
