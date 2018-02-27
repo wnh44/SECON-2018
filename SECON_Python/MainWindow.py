@@ -24,25 +24,25 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 		if item[0] == 'U':
 			if item[1] == 0:
-				#self.microswitch0value.set(value)
+				self.microswitch0_value.set(value)
 			if item[1] == 1:
-				#self.microswitch1value.set(value)
+				self.microswitch1_value.set(value)
 			if item[1] == 2:
-				#self.microswitch2value.set(value)
+				self.microswitch2_value.set(value)
 			if item[1] == 3:
-				#self.microswitch3value.set(value)
+				self.microswitch3_value.set(value)
 
 		elif item[0] == 'R':
 			if item[1] == 0:
-				#self.rangefinder0value.set(value)
+				self.rangefinder0_value.set(value)
 			if item[1] == 1:
-				#self.rangefinder1value.set(value)
+				self.rangefinder1_value.set(value)
 			if item[1] == 2:
-				#self.rangefinder2value.set(value)
+				self.rangefinder2_value.set(value)
 			if item[1] == 3:
-				#self.rangefinder3value.set(value)
+				self.rangefinder3_value.set(value)
 			if item[1] == 4:
-				#self.rangefinder4value.set(value)
+				self.rangefinder4_value.set(value)
 
 		elif item[0] == 'D':
 			self.debugText.append(value)
