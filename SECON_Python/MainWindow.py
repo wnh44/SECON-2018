@@ -24,25 +24,13 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 		if item[0] == 'U':
 			if item[1] == 0:
-				if value == 1:
-					microswitch0.setStyleSheet("background-color: red")
-				else:
-					microswitch0.setStyleSheet("background-color: grey")
+				self.microswitch0_value.set(value)
 			if item[1] == 1:
-				if value == 1:
-					microswitch1.setStyleSheet("background-color: red")
-				else:
-					microswitch1.setStyleSheet("background-color: grey")
+				self.microswitch1_value.set(value)
 			if item[1] == 2:
-				if value == 1:
-					microswitch2.setStyleSheet("background-color: red")
-				else:
-					microswitch2.setStyleSheet("background-color: grey")
+				self.microswitch2_value.set(value)
 			if item[1] == 3:
-				if value == 1:
-					microswitch3.setStyleSheet("background-color: red")
-				else:
-					microswitch3.setStyleSheet("background-color: grey")
+				self.microswitch3_value.set(value)
 
 		elif item[0] == 'R':
 			if item[1] == 0:
