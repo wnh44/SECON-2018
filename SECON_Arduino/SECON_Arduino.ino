@@ -1,14 +1,15 @@
 // SECON_Arduino.ino
 // Description: This is the current version of the SECON2018 robot.
 //              Hopefully it's not broken...
-
+// To future SECON teams at msstate... if you're
+// using this, shame on you. Get a lyfe.
 
 ///////////////
 // Libraries //
 ///////////////
 
 #include <Wire.h>
-#include "Adafruit_MotorShield.h"
+#include <Adafruit_MotorShield.h>
 
 
 /////////////////////
