@@ -114,6 +114,12 @@ uint8_t motor3_commandVelocity = 0;
 char serialMessage[10];
 
 
+/////////////////////////
+// Function Prototypes //
+/////////////////////////
+
+void readRangefinders(int wait = 300);
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Function: setup()                                                                //
@@ -332,10 +338,10 @@ void toStageA() {
         // Move right towards Stage A. If leading microswitch is deactivated, robot
         // slides until contact is reestablished
         while(rangefinder0 < 35) {
-            if(!microswitch2 {
+            if(!microswitch2) {
                 slideBackRight(255);
             } else {
-                moveRight(255);
+                moveRight(255); 
             }
             
             readRangefinders();
@@ -465,7 +471,7 @@ void toStageB() {
     
     moveForward(255);
     delay(11700); // Probably necessary
-    readRangefinders
+    readRangefinders();
     
     // Navigate towards chest
     while(rangefinder4 >= 17) {        
@@ -818,7 +824,7 @@ void toShip() {
     delay(1000);
     
     moveBackward(255);
-    while(!microswitch2 || !microswitch3 {
+    while(!microswitch2 || !microswitch3) {
         if(microswitch2) {
             turnLeft(127);
         } else if(microswitch3) {
@@ -892,34 +898,6 @@ void stageC() {
     Serial.println("D:STAGE_C");
     
     state = WAIT_FOR_START;
-} 
-
-
-/////////////////////////////
-// ISR for Motor 0 Encoder //
-/////////////////////////////
-
-void motor0_encoder_ISR() {
-    // Halts interrupts
-    cli();
-    
-    static volatile int enc;
-    
-    // Reads the two pins and xors them
-    //enc = ((PINE & (1<<PE4))>>4) ^ ((PINH & (1<<PH1))>>1);
-    
-    switch(enc) {
-        case (0b1):  // CCW Forward
-            motor0_encoder--;
-            break;
-        
-        case (0b0):  // CW Backwards
-            motor0_encoder++;
-            break;
-
-    // Resumes interrupts
-    sei();
-    }
 }
 
 
@@ -927,7 +905,7 @@ void motor0_encoder_ISR() {
 // Read Rangefinders //
 ///////////////////////
 
-void readRangefinders(int wait = 300) {
+void readRangefinders(int wait) {
     digitalWrite(RANGEFINDER_0_RX, HIGH);
     delay(35);
     digitalWrite(RANGEFINDER_0_RX, LOW);

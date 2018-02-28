@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>800</height>
+    <width>602</width>
+    <height>602</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>800</width>
-      <height>800</height>
+      <width>600</width>
+      <height>600</height>
      </rect>
     </property>
     <property name="title">
@@ -30,13 +30,13 @@
      <property name="geometry">
       <rect>
        <x>1</x>
-       <y>600</y>
-       <width>800</width>
+       <y>401</y>
+       <width>600</width>
        <height>200</height>
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="iconSize">
       <size>
@@ -94,10 +94,10 @@
     <widget class="QGraphicsView" name="robotView">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>800</width>
-       <height>600</height>
+       <x>1</x>
+       <y>1</y>
+       <width>600</width>
+       <height>400</height>
       </rect>
      </property>
     </widget>
@@ -105,7 +105,7 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>160</y>
+       <y>100</y>
        <width>132</width>
        <height>35</height>
       </rect>
@@ -147,7 +147,7 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> U0</string>
+       <string> R0</string>
       </property>
      </widget>
      <widget class="QLabel" name="rangefinder0_label_2">
@@ -178,8 +178,8 @@
     <widget class="QGroupBox" name="rangefinder1">
      <property name="geometry">
       <rect>
-       <x>580</x>
-       <y>160</y>
+       <x>438</x>
+       <y>100</y>
        <width>132</width>
        <height>35</height>
       </rect>
@@ -221,7 +221,7 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> U1</string>
+       <string> R1</string>
       </property>
      </widget>
      <widget class="QLabel" name="rangefinder1_label_2">
@@ -250,7 +250,7 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>330</y>
+       <y>265</y>
        <width>132</width>
        <height>35</height>
       </rect>
@@ -292,7 +292,7 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> U3</string>
+       <string> R3</string>
       </property>
      </widget>
      <widget class="QLabel" name="rangefinder3_label_2">
@@ -320,8 +320,8 @@
     <widget class="QGroupBox" name="rangefinder2">
      <property name="geometry">
       <rect>
-       <x>590</x>
-       <y>330</y>
+       <x>438</x>
+       <y>265</y>
        <width>132</width>
        <height>35</height>
       </rect>
@@ -363,7 +363,7 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> U2</string>
+       <string> R2</string>
       </property>
      </widget>
      <widget class="QLabel" name="rangefinder2_label_2">
@@ -391,8 +391,8 @@
     <widget class="QGroupBox" name="rangefinder4">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>40</y>
+       <x>234</x>
+       <y>30</y>
        <width>132</width>
        <height>35</height>
       </rect>
@@ -434,7 +434,7 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> U4</string>
+       <string> R4</string>
       </property>
      </widget>
      <widget class="QLabel" name="rangefinder4_label_2">
@@ -459,13 +459,13 @@
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="microswitch1">
+    <widget class="QGroupBox" name="object">
      <property name="geometry">
       <rect>
-       <x>490</x>
-       <y>80</y>
-       <width>132</width>
-       <height>35</height>
+       <x>200</x>
+       <y>100</y>
+       <width>200</width>
+       <height>200</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -474,68 +474,93 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QPlainTextEdit" name="microswitch1_value">
-      <property name="geometry">
-       <rect>
-        <x>48</x>
-        <y>2</y>
-        <width>61</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: #EEEEEE;</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="microswitch1_label">
-      <property name="geometry">
-       <rect>
-        <x>1</x>
-        <y>1</y>
-        <width>41</width>
-        <height>33</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border: 0px solid;</string>
-      </property>
-      <property name="text">
-       <string> R1</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="microswitch1_label_2">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>1</y>
-        <width>21</width>
-        <height>33</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border: 0px solid;</string>
-      </property>
-      <property name="text">
-       <string>in</string>
-      </property>
-     </widget>
     </widget>
-    <widget class="QGroupBox" name="microswitch0">
+    <widget class="QGroupBox" name="object_2">
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>399</x>
+       <y>107</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #000000; border: 1px solid black;</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="object_3">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>107</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #000000; border: 1px solid black;</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="object_4">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>273</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #000000; border: 1px solid black;</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="object_5">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>273</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #000000; border: 1px solid black;</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="object_6">
+     <property name="geometry">
+      <rect>
+       <x>289</x>
        <y>80</y>
-       <width>132</width>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #000000; border: 1px solid black;</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="microswitch3">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>283</y>
+       <width>43</width>
        <height>35</height>
       </rect>
      </property>
@@ -545,20 +570,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QPlainTextEdit" name="microswitch0_value">
-      <property name="geometry">
-       <rect>
-        <x>48</x>
-        <y>2</y>
-        <width>61</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: #EEEEEE;</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="microswitch0_label">
+     <widget class="QLabel" name="microswitch3_value">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -576,37 +588,19 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> R0</string>
+       <string>U3</string>
       </property>
-     </widget>
-     <widget class="QLabel" name="microswitch0_label_2">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>1</y>
-        <width>21</width>
-        <height>33</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border: 0px solid;</string>
-      </property>
-      <property name="text">
-       <string>in</string>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </widget>
     <widget class="QGroupBox" name="microswitch2">
      <property name="geometry">
       <rect>
-       <x>490</x>
-       <y>450</y>
-       <width>132</width>
+       <x>337</x>
+       <y>283</y>
+       <width>43</width>
        <height>35</height>
       </rect>
      </property>
@@ -616,20 +610,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QPlainTextEdit" name="microswitch2_value">
-      <property name="geometry">
-       <rect>
-        <x>48</x>
-        <y>2</y>
-        <width>61</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: #EEEEEE;</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="microswitch2_label">
+     <widget class="QLabel" name="microswitch2_value">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -647,37 +628,19 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> R1</string>
+       <string>U2</string>
       </property>
-     </widget>
-     <widget class="QLabel" name="microswitch2_label_2">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>1</y>
-        <width>21</width>
-        <height>33</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">border: 0px solid;</string>
-      </property>
-      <property name="text">
-       <string>in</string>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </widget>
-    <widget class="QGroupBox" name="microswitch3">
+    <widget class="QGroupBox" name="microswitch0">
      <property name="geometry">
       <rect>
-       <x>110</x>
-       <y>450</y>
-       <width>132</width>
+       <x>220</x>
+       <y>83</y>
+       <width>43</width>
        <height>35</height>
       </rect>
      </property>
@@ -687,20 +650,7 @@
      <property name="title">
       <string/>
      </property>
-     <widget class="QPlainTextEdit" name="microswitch3_value">
-      <property name="geometry">
-       <rect>
-        <x>48</x>
-        <y>2</y>
-        <width>61</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: #EEEEEE;</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="microswitch3_label">
+     <widget class="QLabel" name="microswitch0_value">
       <property name="geometry">
        <rect>
         <x>1</x>
@@ -718,28 +668,50 @@
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string> R3</string>
+       <string>U0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="microswitch3_label_2">
+    </widget>
+    <widget class="QGroupBox" name="microswitch1">
+     <property name="geometry">
+      <rect>
+       <x>337</x>
+       <y>83</y>
+       <width>43</width>
+       <height>35</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: #CCCCCC; border: 1px solid black;</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QLabel" name="microswitch1_value">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>1</x>
         <y>1</y>
-        <width>21</width>
+        <width>41</width>
         <height>33</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <pointsize>14</pointsize>
+        <pointsize>16</pointsize>
        </font>
       </property>
       <property name="styleSheet">
        <string notr="true">border: 0px solid;</string>
       </property>
       <property name="text">
-       <string>in</string>
+       <string>U1</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </widget>
