@@ -24,37 +24,42 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 		if item[0] == 'U':
 			if item[1] == '0':
-				if value == 1:
+				if value == '1':
 					self.microswitch0.setStyleSheet("background-color: #CCCCCC; border: 1px solid black;")
 				else:
 					self.microswitch0.setStyleSheet("background-color: red; border: 1px solid black;")
 			if item[1] == '1':
-				if value == 1:
+				if value == '1':
 					self.microswitch1.setStyleSheet("background-color: #CCCCCC; border: 1px solid black;")
 				else:
 					self.microswitch1.setStyleSheet("background-color: red; border: 1px solid black;")
 			if item[1] == '2':
-				if value == 1:
+				if value == '1':
 					self.microswitch2.setStyleSheet("background-color: #CCCCCC; border: 1px solid black;")
 				else:
 					self.microswitch2.setStyleSheet("background-color: red; border: 1px solid black;")
 			if item[1] == '3':
-				if value == 1:
+				if value == '1':
 					self.microswitch3.setStyleSheet("background-color: #CCCCCC; border: 1px solid black;")
 				else:
 					self.microswitch3.setStyleSheet("background-color: red; border: 1px solid black;")
 
 		elif item[0] == 'R':
 			if item[1] == '0':
-				self.rangefinder0_value.set(value)
+				self.rangefinder0_value.clear()
+				self.rangefinder0_value.appendPlainText(value)
 			if item[1] == '1':
-				self.rangefinder1_value.set(value)
+				self.rangefinder1_value.clear()
+				self.rangefinder1_value.appendPlainText(value)
 			if item[1] == '2':
-				self.rangefinder2_value.set(value)
+				self.rangefinder2_value.clear()
+				self.rangefinder2_value.appendPlainText(value)
 			if item[1] == '3':
-				self.rangefinder3_value.set(value)
+				self.rangefinder3_value.clear()
+				self.rangefinder3_value.appendPlainText(value)
 			if item[1] == '4':
-				self.rangefinder4_value.set(value)
+				self.rangefinder4_value.clear()
+				self.rangefinder4_value.appendPlainText(value)
 
 		elif item[0] == 'D':
 			self.debugText.append(value)

@@ -31,6 +31,30 @@
 // Start Button
 #define START_BUTTON 2
 
+
+///////////////////////////
+// Rangefinder Variables //
+///////////////////////////
+
+int rangefinder0 = 0;
+int rangefinder1 = 0;
+int rangefinder2 = 0;
+int rangefinder3 = 0;
+int rangefinder4 = 0;
+
+
+///////////////////////////
+// Microswitch Variables //
+///////////////////////////
+
+int microswitch0 = 0;
+int microswitch1 = 0;
+int microswitch2 = 0;
+int microswitch3 = 0;
+
+int startButton = 0;
+
+
 char formattedOutput[4];
 
 void setup() {
@@ -69,37 +93,37 @@ void loop() {
     
     // Rangefinder 0
     Serial.print("RF0: ");
-    sprintf(formattedOutput, "%03d", rangefinder0;
+    sprintf(formattedOutput, "%03d", rangefinder0);
     Serial.print(formattedOutput);
-    Serial2.print('R0:');
+    Serial2.print("R0:");
     Serial2.println(rangefinder0);
     
     // Rangefinder 1
     Serial.print("  RF1: ");
-    sprintf(formattedOutput, "%03d", rangefinder1;
+    sprintf(formattedOutput, "%03d", rangefinder1);
     Serial.print(formattedOutput);
-    Serial2.print('R1:');
+    Serial2.print("R1:");
     Serial2.println(rangefinder1);
     
     // Rangefinder 2
     Serial.print("  RF2: ");
-    sprintf(formattedOutput, "%03d", rangefinder2;
+    sprintf(formattedOutput, "%03d", rangefinder2);
     Serial.print(formattedOutput);
-    Serial2.print('R2:');
+    Serial2.print("R2:");
     Serial2.println(rangefinder2);
     
     // Rangefinder 3
     Serial.print("  RF3: ");
-    sprintf(formattedOutput, "%03d", rangefinder3;
+    sprintf(formattedOutput, "%03d", rangefinder3);
     Serial.print(formattedOutput);
-    Serial2.print('R3:');
+    Serial2.print("R3:");
     Serial2.println(rangefinder3);
     
     // Rangefinder4
     Serial.print("  RF4: ");
-    sprintf(formattedOutput, "%03d", rangefinder4;
+    sprintf(formattedOutput, "%03d", rangefinder4);
     Serial.print(formattedOutput);
-    Serial2.print('R4:');
+    Serial2.print("R4:");
     Serial2.println(rangefinder4);
     
     
@@ -117,25 +141,25 @@ void loop() {
     // Microswitch 0
     Serial.print("   US0: ");
     Serial.print(microswitch0);
-    Serial2.print('U0:');
+    Serial2.print("U0:");
     Serial2.println(microswitch0);
     
     // Microswitch 1
     Serial.print("  US1: ");
     Serial.print(microswitch1);
-    Serial2.print('U1:');
+    Serial2.print("U1:");
     Serial2.println(microswitch1);
     
     // Microswitch 2
     Serial.print("  US2: ");
     Serial.print(microswitch2);
-    Serial2.print('U2:');
+    Serial2.print("U2:");
     Serial2.println(microswitch2);
     
     // Microswitch 3
     Serial.print("  US3: ");
     Serial.print(microswitch3);
-    Serial2.print('U3:');
+    Serial2.print("U3:");
     Serial2.println(microswitch3);
     
     // Start button
@@ -147,4 +171,7 @@ void loop() {
     delay(35);
     digitalWrite(RANGEFINDER_0_RX, 0);
     delay(300);
+    
+    Serial2.print("D:Debug test ");
+    Serial2.println(millis());
 }

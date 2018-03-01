@@ -1,8 +1,6 @@
 // SECON_Arduino.ino
 // Description: This is the current version of the SECON2018 robot.
-//              Hopefully it's not broken...
-// To future SECON teams at msstate... if you're
-// using this, shame on you. Get a lyfe.
+//              Hopefully it"s not broken...
 
 ///////////////
 // Libraries //
@@ -164,8 +162,9 @@ void setup() {
     motor2->run(RELEASE);
     motor3->run(RELEASE);
 
-    // Allow time for rangefinders to calibrate
-    delay(350);
+    // Initial Readings
+    readRangefinders();
+    readMicroswitches();
 }
 
 
@@ -245,7 +244,7 @@ void loop() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void waitForStart() {
-    Serial.println("D:WAIT_FOR_START");
+    Serial2.println("D:WAIT_FOR_START");
     
     while(digitalRead(START_BUTTON)) {
         delay(100);
@@ -262,7 +261,7 @@ void waitForStart() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void decodeLED() {
-    Serial.println("D:DECODE_LED");
+    Serial2.println("D:DECODE_LED");
     
     // FIXME: Returns a random number for now
     randomSeed(analogRead(A14));
@@ -271,12 +270,14 @@ void decodeLED() {
     }
     locations[1] = 0;
     
-    Serial.print("Locations: ");
-    Serial.print(locations[0]);
-    Serial.print(", ");
-    Serial.print(locations[1]);
-    Serial.print(", ");
-    Serial.println(locations[2]);
+    Serial2.print("D:Locations - {");
+    Serial2.print(locations[0]);
+    Serial2.print(", ");
+    Serial2.print(locations[1]);
+    Serial2.print(", ");
+    Serial2.print(locations[2]);
+    Serial2.println("}");
+    delay(100);
     
     state = TO_STAGE_A;
 }
@@ -288,15 +289,17 @@ void decodeLED() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void toStageA() {
-    Serial.println("D:TO_STAGE_A");
+    Serial2.println("D:TO_STAGE_A");
+    readRangefinders();
+    readMicroswitches();
     
     moveBackward(255);
     
     // Move to back wall
-    while(!digitalRead(MICROSWITCH_2) || !digitalRead(MICROSWITCH_3)) {
-        if(digitalRead(MICROSWITCH_2)) {
+    while(!microswitch2 || !microswitch3) {
+        if(microswitch2) {
             turnLeft(127);
-        } else if(digitalRead(MICROSWITCH_3)) {
+        } else if(microswitch3) {
             turnRight(127);
         } else {
             moveBackward(255);
@@ -306,10 +309,11 @@ void toStageA() {
 
     // Navigate to left (0) Stage A
     if(locations[0] == 0) {
+        Serial2.println("D:To Stage A0");
         
         // Move left towards Stage A. If leading microswitch is deactivated, robot
         // slides until contact is reestablished
-        while(rangefinder1 < 36) {
+        while(rangefinder1 < 33) {
             if(!microswitch3) {
                 slideBackLeft(255);
             } else {
@@ -321,9 +325,11 @@ void toStageA() {
         }
     
         // Slow down when ~2 in away while maintaining contact with back wall
-        while(rangefinder1 < 38) {
+        while(rangefinder1 < 35) {
+            Serial2.println("D:close");
             while(!microswitch2 || !microswitch3) {
                 moveBackward(127);
+                readMicroswitches();
             }
             moveLeft(127);
             
@@ -334,10 +340,11 @@ void toStageA() {
     
     // Navigate to right (1) Stage A
     else {
+        Serial2.println("D:To Stage A1");
         
         // Move right towards Stage A. If leading microswitch is deactivated, robot
         // slides until contact is reestablished
-        while(rangefinder0 < 35) {
+        while(rangefinder0 < 33) {
             if(!microswitch2) {
                 slideBackRight(255);
             } else {
@@ -349,9 +356,11 @@ void toStageA() {
         }
     
         // Slow down when ~2 in away while maintaining contact with back wall
-        while(rangefinder0 < 36) {
+        while(rangefinder0 < 35) {
+            Serial2.println("D:close");
             while(!microswitch2 || !microswitch3) {
                 moveBackward(127);
+                readMicroswitches();
             }
             moveRight(127);
             
@@ -362,6 +371,7 @@ void toStageA() {
 
     // Straighten up on back wall
     moveBackward(255);
+    Serial2.println("D:To back wall");
     while(!microswitch2 || !microswitch3) {
         if(microswitch2) {
             turnLeft(127);
@@ -382,11 +392,11 @@ void toStageA() {
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Function: stageA()                                                               //
-// Description: Activates stage A. This probably won't be necessary.                //
+// Description: Activates stage A. This probably won"t be necessary.                //
 //////////////////////////////////////////////////////////////////////////////////////
 
 void stageA() {
-    Serial.println("D:STAGE_A");
+    Serial2.println("D:STAGE_A");
     
     // FIXME: Stage A implementation
     state = FROM_STAGE_A;
@@ -399,12 +409,12 @@ void stageA() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void fromStageA() {
-    Serial.println("D:FROM_STAGE_A");
+    Serial2.println("D:FROM_STAGE_A");
 
     // Navigate to center of ship from left (0) Stage A
     if(locations[0] == 0) {
         // Move right towards center
-        while(rangefinder1 - rangefinder0 >= 4) {
+        while(rangefinder1 - rangefinder0 >= 3) {
             if(!microswitch2) {
                 slideBackRight(255);
             } else {
@@ -419,20 +429,16 @@ void fromStageA() {
         while(rangefinder1 != rangefinder0) {
             while(!microswitch2 || !microswitch3) {
                 moveBackward(127);
+                readMicroswitches();
             }
-            moveRight(65);
+            moveRight(32);
             
             readRangefinders();
             readMicroswitches();
         }
     } else {
         // Move left towards center
-        int twice = 0;
-        while(rangefinder0 - rangefinder1 >= 2 || twice == 0) {
-            if(rangefinder0 - rangefinder1 <= 2) {
-                twice = 1;
-            }
-            
+        while(rangefinder0 - rangefinder1 >= 3) {
             if(!microswitch3) {
                 slideBackLeft(255);
             } else {
@@ -447,8 +453,9 @@ void fromStageA() {
         while(rangefinder0 != rangefinder1) {
             while(!microswitch2 || !microswitch3) {
                 moveBackward(127);
+                readMicroswitches();
             }
-            moveLeft(65);
+            moveLeft(32);
              
             readRangefinders();
             readMicroswitches();
@@ -467,10 +474,10 @@ void fromStageA() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void toStageB() {
-    Serial.println("D:TO_STAGE_B");
+    Serial2.println("D:TO_STAGE_B");
     
     moveForward(255);
-    delay(11700); // Probably necessary
+    delay(4700); // Probably necessary
     readRangefinders();
     
     // Navigate towards chest
@@ -486,15 +493,15 @@ void toStageB() {
             delay(150);
 
             rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-            Serial2.print('R2:');
+            Serial2.print("R2:");
             Serial2.println(rangefinder2);
         
             rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-            Serial2.print('R3:');
+            Serial2.print("R3:");
             Serial2.println(rangefinder3);
         
             rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-            Serial2.print('R4:');
+            Serial2.print("R4:");
             Serial2.println(rangefinder4);
 
             // Update sums and calculate again
@@ -510,15 +517,15 @@ void toStageB() {
             delay(150);
 
             rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-            Serial2.print('R2:');
+            Serial2.print("R2:");
             Serial2.println(rangefinder2);
         
             rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-            Serial2.print('R3:');
+            Serial2.print("R3:");
             Serial2.println(rangefinder3);
         
             rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-            Serial2.print('R4:');
+            Serial2.print("R4:");
             Serial2.println(rangefinder4);
 
             // Update sums and calculate again
@@ -610,13 +617,14 @@ void toStageB() {
 }
 
 void stageB() {
-    Serial.println("D:STAGE_B");
+    Serial2.println("D:STAGE_B");
     
     state = TO_BOOTY;
+    state = WAIT_FOR_START;
 }
 
 void toBooty() {
-    Serial.println("D:TO_BOOTY");
+    Serial2.println("D:TO_BOOTY");
     
     // Move towards front wall
     moveForward(255);
@@ -634,15 +642,15 @@ void toBooty() {
         delay(200);
  
         rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-        Serial2.print('R2:');
+        Serial2.print("R2:");
         Serial2.println(rangefinder2);
     
         rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-        Serial2.print('R3:');
+        Serial2.print("R3:");
         Serial2.println(rangefinder3);
     
         rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-        Serial2.print('R4:');
+        Serial2.print("R4:");
         Serial2.println(rangefinder4);
     }
     
@@ -746,15 +754,15 @@ void toBooty() {
         delay(150);
     
         rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-        Serial2.print('R2:');
+        Serial2.print("R2:");
         Serial2.println(rangefinder2);
     
         rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-        Serial2.print('R3:');
+        Serial2.print("R3:");
         Serial2.println(rangefinder3);
     
         rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-        Serial2.print('R4:');
+        Serial2.print("R4:");
         Serial2.println(rangefinder4);
     }
     
@@ -766,13 +774,13 @@ void toBooty() {
 }
 
 void retrieveBooty() {
-    Serial.println("D:RETRIEVE_BOOTY");
+    Serial2.println("D:RETRIEVE_BOOTY");
     
     state = TO_FLAG;
 }
 
 void toFlag() {
-    Serial.println("D:TO_FLAG");
+    Serial2.println("D:TO_FLAG");
     
     moveForward(255);
     
@@ -839,7 +847,7 @@ void toShip() {
 }
 
 void toStageC() {
-    Serial.println("D:TO_STAGE_C");
+    Serial2.println("D:TO_STAGE_C");
     
     if(locations[2] == 0) {
         // Move left towards Stage C    
@@ -895,7 +903,7 @@ void toStageC() {
 }
 
 void stageC() {
-    Serial.println("D:STAGE_C");
+    Serial2.println("D:STAGE_C");
     
     state = WAIT_FOR_START;
 }
@@ -912,23 +920,23 @@ void readRangefinders(int wait) {
     delay(wait);
         
     rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
-    Serial2.print('R0:');
+    Serial2.print("R0:");
     Serial2.println(rangefinder0);
 
     rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
-    Serial2.print('R1:');
+    Serial2.print("R1:");
     Serial2.println(rangefinder1);
 
     rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-    Serial2.print('R2:');
+    Serial2.print("R2:");
     Serial2.println(rangefinder2);
 
     rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-    Serial2.print('R3:');
+    Serial2.print("R3:");
     Serial2.println(rangefinder3);
 
     rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-    Serial2.print('R4:');
+    Serial2.print("R4:");
     Serial2.println(rangefinder4);
 }
 
@@ -939,19 +947,19 @@ void readRangefinders(int wait) {
 
 void readMicroswitches() {
     microswitch0 = digitalRead(MICROSWITCH_0);
-    Serial2.print('U0:');
+    Serial2.print("U0:");
     Serial2.println(microswitch0);
     
     microswitch1 = digitalRead(MICROSWITCH_1);
-    Serial2.print('U1:');
+    Serial2.print("U1:");
     Serial2.println(microswitch1);
     
     microswitch2 = digitalRead(MICROSWITCH_2);
-    Serial2.print('U2:');
+    Serial2.print("U2:");
     Serial2.println(microswitch2);
     
     microswitch3 = digitalRead(MICROSWITCH_3);
-    Serial2.print('U3:');
+    Serial2.print("U3:");
     Serial2.println(microswitch3);
 }
 

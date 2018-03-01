@@ -56,8 +56,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>600</width>
-         <height>175</height>
+         <width>596</width>
+         <height>172</height>
         </rect>
        </property>
        <property name="widgetResizable">
@@ -68,8 +68,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>598</width>
-          <height>173</height>
+          <width>594</width>
+          <height>170</height>
          </rect>
         </property>
         <widget class="QTextEdit" name="debugText">
@@ -77,8 +77,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>600</width>
-           <height>200</height>
+           <width>594</width>
+           <height>170</height>
           </rect>
          </property>
         </widget>
