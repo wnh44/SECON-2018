@@ -315,8 +315,10 @@ void toStageA() {
         // slides until contact is reestablished
         while(rangefinder1 < 33) {
             if(!microswitch3) {
+                Serial2.println("D:slide");
                 slideBackLeft(255);
             } else {
+                Serial2.println("D:move");
                 moveLeft(255);
             }
 
@@ -1121,15 +1123,13 @@ void slideBackRight(int velocity) {
 ////////////////
 
 void stopRobot() {
-    motor0_commandVelocity = 0;
-    motor1_commandVelocity = 0;
-    motor2_commandVelocity = 0;
-    motor3_commandVelocity = 0;
+    motor0->setSpeed(0);
+    motor1->setSpeed(0);
+    motor2->setSpeed(0);
+    motor3->setSpeed(0);
     motor0->run(RELEASE);
     motor1->run(RELEASE);
     motor2->run(RELEASE);
     motor3->run(RELEASE);
-
-    commandMotors();
 }
 
