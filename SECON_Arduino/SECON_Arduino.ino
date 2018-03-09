@@ -438,7 +438,10 @@ void fromStageA() {
             readRangefinders();
             readMicroswitches();
         }
-    } else {
+    }
+    
+    // Navigate to center of ship from left (0) Stage A
+    else {
         // Move left towards center
         while(rangefinder0 - rangefinder1 >= 3) {
             if(!microswitch3) {
@@ -618,12 +621,24 @@ void toStageB() {
     state = STAGE_B;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: StageB()                                                               //
+// Description: Activate Stage B                                                    //
+//////////////////////////////////////////////////////////////////////////////////////
+
 void stageB() {
     Serial2.println("D:STAGE_B");
     
     state = TO_BOOTY;
     state = WAIT_FOR_START;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: toBooty()                                                              //
+// Description: Navigate to chest                                                   //
+//////////////////////////////////////////////////////////////////////////////////////
 
 void toBooty() {
     Serial2.println("D:TO_BOOTY");
@@ -775,11 +790,23 @@ void toBooty() {
     state = RETRIEVE_BOOTY;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: retrieveBooty()                                                        //
+// Description: Retrieve chest                                                      //
+//////////////////////////////////////////////////////////////////////////////////////
+
 void retrieveBooty() {
     Serial2.println("D:RETRIEVE_BOOTY");
     
     state = TO_FLAG;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: toFlag()                                                               //
+// Description: Navigate to flag                                                    //
+//////////////////////////////////////////////////////////////////////////////////////
 
 void toFlag() {
     Serial2.println("D:TO_FLAG");
@@ -804,6 +831,12 @@ void toFlag() {
     state = RAISE_FLAG;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: raiseFlag()                                                            //
+// Description: Raise the flag                                                      //
+//////////////////////////////////////////////////////////////////////////////////////
+
 void raiseFlag() {
     Serial2.println("D:RAISE_FLAG");
     
@@ -813,6 +846,12 @@ void raiseFlag() {
     
     state = TO_SHIP;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: toShip()                                                               //
+// Description: Navigate back to the ship and against the back wall                 //
+//////////////////////////////////////////////////////////////////////////////////////
 
 void toShip() {
     Serial2.println("D:TO_SHIP");
@@ -847,6 +886,12 @@ void toShip() {
     }
     state = TO_STAGE_C;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: toStageC()                                                             //
+// Description: Navigate to stage C                                                 //
+//////////////////////////////////////////////////////////////////////////////////////
 
 void toStageC() {
     Serial2.println("D:TO_STAGE_C");
@@ -903,6 +948,12 @@ void toStageC() {
     
     state = STAGE_C;
 }
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: StageC()                                                               //
+// Description: Activate Stage C                                                    //
+//////////////////////////////////////////////////////////////////////////////////////
 
 void stageC() {
     Serial2.println("D:STAGE_C");
@@ -1077,6 +1128,37 @@ void turnRight(int velocity) {
     motor3_commandVelocity = velocity;
     motor0->run(FORWARD);
     motor3->run(FORWARD);
+
+    commandMotors();
+}
+
+
+//////////////////////
+// Pivot Robot Left //
+//////////////////////
+
+void pivotLeft(int velocity) {
+    motor0_commandVelocity = velocity;
+    motor1_commandVelocity = 0;
+    motor2_commandVelocity = 0;
+    motor3_commandVelocity = velocity;
+    motor0->run(BACKWARD);
+    motor3->run(BACKWARD);
+    commandMotors();
+}
+
+
+///////////////////////
+// Pivot Robot Right //
+///////////////////////
+
+void pivotRight(int velocity) {
+    motor0_commandVelocity = 0;
+    motor1_commandVelocity = velocity;
+    motor2_commandVelocity = velocity;
+    motor3_commandVelocity = 0;
+    motor1->run(BACKWARD);
+    motor2->run(BACKWARD);
 
     commandMotors();
 }
