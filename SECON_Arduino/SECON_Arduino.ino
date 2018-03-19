@@ -92,18 +92,23 @@ int microswitch3 = 0;
 // Motor Variables //
 /////////////////////
 
-// Motor Shield Variables
-Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-Adafruit_DCMotor *motor0 = AFMS.getMotor(1);
-Adafruit_DCMotor *motor1 = AFMS.getMotor(2);
-Adafruit_DCMotor *motor2 = AFMS.getMotor(3);
-Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
+// Bottom Motor Shield Variables
+Adafruit_MotorShield AFMS_bottom = Adafruit_MotorShield(0x60);
+Adafruit_DCMotor *motor0 = AFMS_bottom.getMotor(1);
+Adafruit_DCMotor *motor1 = AFMS_bottom.getMotor(2);
+Adafruit_DCMotor *motor2 = AFMS_bottom.getMotor(3);
+Adafruit_DCMotor *motor3 = AFMS_bottom.getMotor(4);
+
+// Bottom Motor Shield Variables
+Adafruit_MotorShield AFMS_top = Adafruit_MotorShield(0x61);
+Adafruit_DCMotor *motor_booty = AFMS_top.getMotor(1);
 
 // Command Velocities (0-255)
 uint8_t motor0_commandVelocity = 0;
 uint8_t motor1_commandVelocity = 0;
 uint8_t motor2_commandVelocity = 0;
 uint8_t motor3_commandVelocity = 0;
+
 
 ////////////////////////////////
 // Pi<->Mega Serial Variables //
@@ -142,7 +147,8 @@ void setup() {
     pinMode(START_BUTTON, INPUT_PULLUP);
     
     // Initialize MotorShield
-    AFMS.begin();
+    AFMS_bottom.begin();
+    AFMS_top.begin();
 
     // Initialize motor speed to 0
     motor0->setSpeed(0);
@@ -156,7 +162,7 @@ void setup() {
     motor2->run(FORWARD);
     motor3->run(FORWARD);
 
-    // Release motors
+    // Release motorss
     motor0->run(RELEASE);
     motor1->run(RELEASE);
     motor2->run(RELEASE);

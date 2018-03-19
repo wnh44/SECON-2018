@@ -68,18 +68,23 @@ int microswitch3 = 0;
 // Motor Variables //
 /////////////////////
 
-// Motor Shield Variables
-Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-Adafruit_DCMotor *motor0 = AFMS.getMotor(1);
-Adafruit_DCMotor *motor1 = AFMS.getMotor(2);
-Adafruit_DCMotor *motor2 = AFMS.getMotor(3);
-Adafruit_DCMotor *motor3 = AFMS.getMotor(4);
+// Bottom Motor Shield Variables
+Adafruit_MotorShield AFMS_bottom = Adafruit_MotorShield(0x60);
+Adafruit_DCMotor *motor0 = AFMS_bottom.getMotor(1);
+Adafruit_DCMotor *motor1 = AFMS_bottom.getMotor(2);
+Adafruit_DCMotor *motor2 = AFMS_bottom.getMotor(3);
+Adafruit_DCMotor *motor3 = AFMS_bottom.getMotor(4);
+
+// Bottom Motor Shield Variables
+Adafruit_MotorShield AFMS_top = Adafruit_MotorShield(0x61);
+Adafruit_DCMotor *motor_booty = AFMS_top.getMotor(1);
 
 // Command Velocities (0-255)
 uint8_t motor0_commandVelocity = 0;
 uint8_t motor1_commandVelocity = 0;
 uint8_t motor2_commandVelocity = 0;
 uint8_t motor3_commandVelocity = 0;
+
 
 ////////////////////////////////
 // Pi<->Mega Serial Variables //
@@ -117,26 +122,30 @@ void setup() {
     // Initialize Start Button Pin (also initializes restart)
     pinMode(START_BUTTON, INPUT_PULLUP);
     
-    // Initialize MotorShield
-    AFMS.begin();
+    // Initialize MotorShields
+    AFMS_bottom.begin();
+    AFMS_top.begin();
 
     // Initialize motor speed to 0
     motor0->setSpeed(0);
     motor1->setSpeed(0);
     motor2->setSpeed(0);
     motor3->setSpeed(0);
+    motor_booty->setSpeed(0);
 
     // Set initial direction to FORWARD
     motor0->run(FORWARD);
     motor1->run(FORWARD);
     motor2->run(FORWARD);
     motor3->run(FORWARD);
+    motor_booty->run(FORWARD);
 
     // Release motors
     motor0->run(RELEASE);
     motor1->run(RELEASE);
     motor2->run(RELEASE);
     motor3->run(RELEASE);
+    motor_booty->run(RELEASE);
 
     // Initial Readings
     readRangefinders();
@@ -150,7 +159,27 @@ void setup() {
 //////////////////////////////////////////////////////////
 
 void loop() {
+  while(digitalRead(START_BUTTON)) {
+        delay(100);
+  }
     
+  while(1) {
+      motor_booty->setSpeed(100);
+      motor_booty->run(FORWARD);
+      delay(50);
+      
+      motor_booty->setSpeed(0);
+      motor_booty->run(RELEASE);
+      delay(500);
+      
+      motor_booty->setSpeed(100);
+      motor_booty->run(BACKWARD);
+      delay(50);
+      
+      motor_booty->setSpeed(0);
+      motor_booty->run(RELEASE);
+      delay(500);
+  }
 }
 
 
