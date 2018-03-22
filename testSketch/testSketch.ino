@@ -163,8 +163,9 @@ void loop() {
     }
     
     toCenterOfCourse();
-    toStageB1();
-    toBooty1();
+    toStageB0();
+    toBooty0();
+    retrieveBooty();
     toFlag();
 }
 
@@ -570,8 +571,14 @@ void toStageB0() {
     moveLeft(255);
     delay(2000);
     
+    boolean rangefinder1_good = false;
+    boolean rangefinder2_good = false;
+    
     // Move towards Stage B
-    while((rangefinder1 < 33) || (rangefinder2 < 33)) {
+    while(!rangefinder1_good || !rangefinder2_good) {
+        if(rangefinder1 >= 33) rangefinder1_good = true;
+        if(rangefinder2 >= 33) rangefinder2_good = true;
+        
         moveLeft(255);
         
         // Delay for new range data
@@ -579,7 +586,12 @@ void toStageB0() {
         
         while(rangefinder4 < 23) {
             moveBackward(255);
-            readRangefinders();
+            readRangefinders(150);
+            delay(150);
+    
+            rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
+            Serial2.print("R4:");
+            Serial2.println(rangefinder4);
         }
     }
     
@@ -616,8 +628,14 @@ void toStageB1() {
     moveRight(255);
     delay(2000);
     
+    boolean rangefinder0_good = false;
+    boolean rangefinder3_good = false;
+    
     // Move towards Stage B
-    while((rangefinder0 < 34) || (rangefinder3 < 34)) {
+    while(!rangefinder0_good || !rangefinder3_good) {
+        if(rangefinder0 >= 33) rangefinder0_good = true;
+        if(rangefinder3 >= 33) rangefinder3_good = true;
+        
         moveRight(255);
         
         // Delay for new range data
@@ -625,7 +643,12 @@ void toStageB1() {
         
         while(rangefinder4 < 23) {
             moveBackward(255);
-            readRangefinders();
+            readRangefinders(150);
+            delay(150);
+    
+            rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
+            Serial2.print("R4:");
+            Serial2.println(rangefinder4);
         }
     }
     
@@ -676,7 +699,7 @@ void toBooty0() {
     
     // Move towards front wall
     moveForward(255);
-    while(rangefinder4 > 15) {
+    while(rangefinder4 > 16) {
         readRangefinders();
     }
     
@@ -693,7 +716,7 @@ void toBooty0() {
     
     // FIXME: Verify distances on new sensors
     while((rangefinder0 <= 16) && (rangefinder3 <= 16)) {
-        while(rangefinder4 < 14) {
+        while(rangefinder4 < 15) {
             moveBackward(127);
             delay(50);
             moveRight(127);
@@ -701,7 +724,7 @@ void toBooty0() {
             readRangefinders();
         }
         
-        while(rangefinder4 > 14) {
+        while(rangefinder4 > 15) {
             moveForward(127);
             delay(50);
             moveRight(127);
@@ -727,7 +750,7 @@ void toBooty0() {
             enough--;
         }
         
-        while(rangefinder4 < 14) {
+        while(rangefinder4 < 15) {
             moveBackward(63);
             delay(50);
             stopRobot();
@@ -735,7 +758,7 @@ void toBooty0() {
             readRangefinders();
         }
         
-        while(rangefinder4 > 14) {
+        while(rangefinder4 > 15) {
             moveForward(63);
             delay(50);
             stopRobot();
@@ -808,7 +831,7 @@ void toBooty1() {
     
     // FIXME: Verify distances on new sensors
     while((rangefinder1 <= 16) && (rangefinder2 <= 16)) {
-        while(rangefinder4 < 14) {
+        while(rangefinder4 < 15) {
             moveBackward(127);
             delay(50);
             moveLeft(127);
@@ -816,7 +839,7 @@ void toBooty1() {
             readRangefinders();
         }
         
-        while(rangefinder4 > 14) {
+        while(rangefinder4 > 15) {
             moveForward(127);
             delay(50);
             moveLeft(127);
@@ -842,7 +865,7 @@ void toBooty1() {
             enough--;
         }
         
-        while(rangefinder4 < 14) {
+        while(rangefinder4 < 15) {
             moveBackward(63);
             delay(50);
             stopRobot();
@@ -850,7 +873,7 @@ void toBooty1() {
             readRangefinders();
         }
         
-        while(rangefinder4 > 14) {
+        while(rangefinder4 > 15) {
             moveForward(63);
             delay(50);
             stopRobot();
@@ -1010,59 +1033,141 @@ void toShip() {
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-// Function: toStageC()                                                             //
-// Description: Navigate to stage C                                                 //
+// Function: toStageA0()                                                            //
+// Description: Navigates to left stage A                                           //
 //////////////////////////////////////////////////////////////////////////////////////
 
-void toStageC() {
-    Serial2.println("D:TO_STAGE_C");
+void toStageC0() {
+    Serial2.println("D:TO_STAGE_C0");
+    readRangefinders();
+    readMicroswitches();
     
-    if(locations[2] == 0) {
-        // Move left towards Stage C    
-        while(rangefinder1 < 36) {
-            if(!microswitch3) {
-                slideBackLeft(255);
-            } else {
-                moveLeft(255);
-            }
-            
-            readRangefinders();
-            readMicroswitches();
-        }
+    moveBackward(255);
     
-        // Slow down when ~2 in away
-        while(rangefinder1 < 38) {
-            while(!microswitch2 || !microswitch3) {
-                moveBackward(127);
-            }
-            moveLeft(127);
-            
-            readRangefinders();
-            readMicroswitches();
+    // Move to back wall
+    while(!microswitch2 || !microswitch3) {
+        if(microswitch2) {
+            turnLeft(127);
+        } else if(microswitch3) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
         }
-    } else {
-        // Move right towards Stage C    
-        while(rangefinder0 < 35) {
-            if(!microswitch2) {
-                slideBackRight(255);
-            } else {
-                moveRight(255);
-            }
-            
-            readRangefinders();
-            readMicroswitches();
-        }
+        readMicroswitches();
+    }
     
-        // Slow down when ~2 in away
-        while(rangefinder0 < 37) {
-            while(!microswitch2 || !microswitch3) {
-                moveBackward(127);
-            }
-            moveRight(127);
-            
-            readRangefinders();
+    Serial2.println("D:To Stage C0");
+    
+    // Move left towards Stage C. If leading microswitch is deactivated, robot
+    // slides until contact is reestablished
+    while(rangefinder1 < 33) {
+        if(!microswitch3) {
+            Serial2.println("D:slide");
+            slideBackLeft(255);
+        } else {
+            Serial2.println("D:move");
+            moveLeft(255);
+        }
+
+        readRangefinders();
+        readMicroswitches();
+    }
+
+    // Slow down when ~2 in away while maintaining contact with back wall
+    while(rangefinder1 < 35) {
+        Serial2.println("D:close");
+        while(!microswitch2 || !microswitch3) {
+            moveBackward(127);
             readMicroswitches();
         }
+        moveLeft(127);
+        
+        readRangefinders();
+        readMicroswitches();
+    }
+
+    // Straighten up on back wall
+    moveBackward(255);
+    Serial2.println("D:To back wall");
+    while(!microswitch2 || !microswitch3) {
+        if(microswitch2) {
+            turnLeft(127);
+        } else if(microswitch3) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
+        }
+        readMicroswitches();
+    }
+    
+    stopRobot();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Function: toStageC1()                                                            //
+// Description: Navigates to right stage C                                          //
+//////////////////////////////////////////////////////////////////////////////////////
+
+void toStageC1() {
+    Serial2.println("D:TO_STAGE_C1");
+    readRangefinders();
+    readMicroswitches();
+    
+    moveBackward(255);
+    
+    // Move to back wall
+    while(!microswitch2 || !microswitch3) {
+        if(microswitch2) {
+            turnLeft(127);
+        } else if(microswitch3) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
+        }
+        readMicroswitches();
+    }
+    
+    Serial2.println("D:To Stage C1");
+    
+    // Move right towards Stage C. If leading microswitch is deactivated, robot
+    // slides until contact is reestablished
+    while(rangefinder0 < 33) {
+        if(!microswitch2) {
+            slideBackRight(255);
+        } else {
+            moveRight(255); 
+        }
+        
+        readRangefinders();
+        readMicroswitches();
+    }
+
+    // Slow down when ~2 in away while maintaining contact with back wall
+    while(rangefinder0 < 35) {
+        Serial2.println("D:close");
+        while(!microswitch2 || !microswitch3) {
+            moveBackward(127);
+            readMicroswitches();
+        }
+        moveRight(127);
+        
+        readRangefinders();
+        readMicroswitches();
+    }
+
+    // Straighten up on back wall
+    moveBackward(255);
+    Serial2.println("D:To back wall");
+    while(!microswitch2 || !microswitch3) {
+        if(microswitch2) {
+            turnLeft(127);
+        } else if(microswitch3) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
+        }
+        readMicroswitches();
     }
     
     stopRobot();
