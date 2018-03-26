@@ -7,6 +7,7 @@
 
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
+#include <Servo.h>
 
 
 /////////////////////
@@ -26,11 +27,20 @@
 #define RANGEFINDER_3 A11
 #define RANGEFINDER_4 A12
 
-// Rangefinder0 RX pin
-#define RANGEFINDER_0_RX 24
+// Rangefinder RX
+#define RANGEFINDER_0_RX 23
+#define RANGEFINDER_1_RX 25
+#define RANGEFINDER_2_RX 27
+#define RANGEFINDER_3_RX 29
+#define RANGEFINDER_4_RX 31
 
 // Start Button
 #define START_BUTTON 2
+
+// Servos
+#define flagServo 45
+#define stageB0Servo 9
+#define stageB1Servo 10
 
 
 //////////////////////
@@ -40,7 +50,7 @@
 int locations[3] = {0, 0, 0};
 
 
-///////////////////////////
+///////////////////////////N
 // Rangefinder Variables //
 ///////////////////////////
 
@@ -94,7 +104,7 @@ char serialMessage[10];
 // Function Prototypes //
 /////////////////////////
 
-void readRangefinders(int wait = 300);
+//void readRangefinders(int number = 5, int wait = 300);
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +155,7 @@ void setup() {
     motor_booty->run(RELEASE);
 
     // Initial Readings
-    readRangefinders();
+    readRangefinders(5, 300);
     readMicroswitches();
 }
 
@@ -199,7 +209,6 @@ void decodeLED() {
     for(int i = 0; i < 3; i++) {
         locations[i] = random(0, 2);
     }
-    locations[1] = 0;
     
     Serial2.print("D:Locations - {");
     Serial2.print(locations[0]);
@@ -219,7 +228,6 @@ void decodeLED() {
 
 void toStageA0() {
     Serial2.println("D:TO_STAGE_A");
-    readRangefinders();
     readMicroswitches();
     
     moveBackward(255);
@@ -237,6 +245,7 @@ void toStageA0() {
     }
     
     Serial2.println("D:To Stage A0");
+    readRangefinders(1, 50);
     
     // Move left towards Stage A. If leading microswitch is deactivated, robot
     // slides until contact is reestablished
@@ -249,7 +258,7 @@ void toStageA0() {
             moveLeft(255);
         }
 
-        readRangefinders();
+        readRangefinders(1, 50);
         readMicroswitches();
     }
 
@@ -262,7 +271,7 @@ void toStageA0() {
         }
         moveLeft(127);
         
-        readRangefinders();
+        readRangefinders(1, 50);
         readMicroswitches();
     }
 
@@ -291,7 +300,6 @@ void toStageA0() {
 
 void toStageA1() {
     Serial2.println("D:TO_STAGE_A");
-    readRangefinders();
     readMicroswitches();
     
     moveBackward(255);
@@ -309,6 +317,7 @@ void toStageA1() {
     }
     
     Serial2.println("D:To Stage A1");
+    readRangefinders(0, 50);
     
     // Move right towards Stage A. If leading microswitch is deactivated, robot
     // slides until contact is reestablished
@@ -319,7 +328,7 @@ void toStageA1() {
             moveRight(255); 
         }
         
-        readRangefinders();
+        readRangefinders(0, 50);
         readMicroswitches();
     }
 
@@ -332,7 +341,7 @@ void toStageA1() {
         }
         moveRight(127);
         
-        readRangefinders();
+        readRangefinders(0, 50);
         readMicroswitches();
     }
 
@@ -381,7 +390,13 @@ void fromStageA0() {
             moveRight(255);
         }
         
-        readRangefinders();
+        readRangefinders(0, 20);
+        readRangefinders(1, 50);
+        
+        rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+        Serial2.print("R0:");
+        Serial2.println(rangefinder0);
+        
         readMicroswitches();
     }
 
@@ -1189,31 +1204,108 @@ void stageC() {
 // Read Rangefinders //
 ///////////////////////
 
-void readRangefinders(int wait) {
-    digitalWrite(RANGEFINDER_0_RX, HIGH);
-    delay(35);
-    digitalWrite(RANGEFINDER_0_RX, LOW);
-    delay(wait);
+void readRangefinders(int number, int wait) {    
+    if(number == 0) { 
+        digitalWrite(RANGEFINDER_0_RX, HIGH);
+        delay(35);
+        digitalWrite(RANGEFINDER_0_RX, LOW);
+        delay(wait);
         
-    rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
-    Serial2.print("R0:");
-    Serial2.println(rangefinder0);
-
-    rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
-    Serial2.print("R1:");
-    Serial2.println(rangefinder1);
-
-    rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-    Serial2.print("R2:");
-    Serial2.println(rangefinder2);
-
-    rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-    Serial2.print("R3:");
-    Serial2.println(rangefinder3);
-
-    rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-    Serial2.print("R4:");
-    Serial2.println(rangefinder4);
+        rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+        Serial2.print("R0:");
+        Serial2.println(rangefinder0);
+    }
+    
+    if(number == 1) { 
+        digitalWrite(RANGEFINDER_1_RX, HIGH);
+        delay(35);
+        digitalWrite(RANGEFINDER_1_RX, LOW);
+        delay(wait);
+        
+        rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+        Serial2.print("R1:");
+        Serial2.println(rangefinder1);
+    }
+    
+    if(number == 2) { 
+        digitalWrite(RANGEFINDER_2_RX, HIGH);
+        delay(35);
+        digitalWrite(RANGEFINDER_2_RX, LOW);
+        delay(wait);
+        
+        rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+        Serial2.print("R2:");
+        Serial2.println(rangefinder2);
+    }
+    
+    if(number == 3) { 
+        digitalWrite(RANGEFINDER_3_RX, HIGH);
+        delay(35);
+        digitalWrite(RANGEFINDER_3_RX, LOW);
+        delay(wait);
+        
+        rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+        Serial2.print("R3:");
+        Serial2.println(rangefinder3);
+    }
+    
+    if(number == 4) { 
+        digitalWrite(RANGEFINDER_4_RX, HIGH);
+        delay(35);
+        digitalWrite(RANGEFINDER_4_RX, LOW);
+        delay(wait);
+        
+        rangefinder0 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
+        Serial2.print("R4:");
+        Serial2.println(rangefinder4);
+    }
+    
+    if(number == 5) {
+        digitalWrite(RANGEFINDER_0_RX, HIGH);        
+        delay(30);        
+        digitalWrite(RANGEFINDER_0_RX, LOW);        
+        delay(wait/5);
+        
+        rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
+        Serial2.print("R0:");
+        Serial2.println(rangefinder0);
+        
+        digitalWrite(RANGEFINDER_1_RX, HIGH);        
+        delay(30);        
+        digitalWrite(RANGEFINDER_1_RX, LOW);        
+        delay(wait/5);
+        
+        rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
+        Serial2.print("R1:");
+        Serial2.println(rangefinder1);
+        
+        digitalWrite(RANGEFINDER_2_RX, HIGH);        
+        delay(30);       
+        digitalWrite(RANGEFINDER_2_RX, LOW);        
+        delay(wait/5);
+    
+        rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
+        Serial2.print("R2:");
+        Serial2.println(rangefinder2);
+        
+        digitalWrite(RANGEFINDER_3_RX, HIGH);        
+        delay(30);        
+        digitalWrite(RANGEFINDER_3_RX, LOW);        
+        delay(wait/5);
+    
+        rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
+        Serial2.print("R3:");
+        Serial2.println(rangefinder3);
+        
+        digitalWrite(RANGEFINDER_4_RX, HIGH);        
+        delay(30);        
+        digitalWrite(RANGEFINDER_4_RX, LOW);        
+        delay(wait/5);
+    
+        rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
+        Serial2.print("R4:");
+        Serial2.println(rangefinder4);
+    }
 }
 
 
