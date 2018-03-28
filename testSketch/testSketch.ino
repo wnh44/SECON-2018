@@ -38,9 +38,9 @@
 #define START_BUTTON 2
 
 // Servos
-#define flagServo 45
-#define stageB0Servo 9
-#define stageB1Servo 10
+#define SERVO_FLAG 46
+#define SERVO_STAGE_B0 9
+#define SERVO_STAGE_B1 10
 
 
 //////////////////////
@@ -82,16 +82,19 @@ Adafruit_DCMotor *motor1 = AFMS_bottom.getMotor(2);
 Adafruit_DCMotor *motor2 = AFMS_bottom.getMotor(3);
 Adafruit_DCMotor *motor3 = AFMS_bottom.getMotor(4);
 
-// Bottom Motor Shield Variables
-Adafruit_MotorShield AFMS_top = Adafruit_MotorShield(0x61);
-Adafruit_DCMotor *motor_booty = AFMS_top.getMotor(1);
-
 // Command Velocities (0-255)
 uint8_t motor0_commandVelocity = 0;
 uint8_t motor1_commandVelocity = 0;
 uint8_t motor2_commandVelocity = 0;
 uint8_t motor3_commandVelocity = 0;
 
+// Top Motor Shield Variables
+Adafruit_MotorShield AFMS_top = Adafruit_MotorShield(0x61);
+Adafruit_DCMotor *motorBooty = AFMS_top.getMotor(1);
+Adafruit_StepperMotor *motorStepper = AFMS_top.getStepper(200, 2);
+
+// Servo Motors
+Servo servoFlag;
 
 ////////////////////////////////
 // Pi<->Mega Serial Variables //
@@ -133,26 +136,31 @@ void setup() {
     AFMS_bottom.begin();
     AFMS_top.begin();
 
-    // Initialize motor speed to 0
+    // Initialize motor speeds
     motor0->setSpeed(0);
     motor1->setSpeed(0);
     motor2->setSpeed(0);
     motor3->setSpeed(0);
-    motor_booty->setSpeed(0);
+    motorBooty->setSpeed(0);
+    motorStepper->setSpeed(50);
 
     // Set initial direction to FORWARD
     motor0->run(FORWARD);
     motor1->run(FORWARD);
     motor2->run(FORWARD);
     motor3->run(FORWARD);
-    motor_booty->run(FORWARD);
+    motorBooty->run(FORWARD);
 
     // Release motors
     motor0->run(RELEASE);
     motor1->run(RELEASE);
     motor2->run(RELEASE);
     motor3->run(RELEASE);
-    motor_booty->run(RELEASE);
+    motorBooty->run(RELEASE);
+    
+    // Attach servos to pins
+    //servoFlag.attach(SERVO_FLAG);
+    //servoFlag.write(90);
 
     // Initial Readings
     readRangefinders(5, 300);
@@ -172,11 +180,11 @@ void loop() {
         delay(100);
     }
     
-    toCenterOfCourse();
-    toStageB0();
-    toBooty0();
-    retrieveBooty();
-    toFlag();
+    //servoFlag.write(0);
+    //delay(300);
+    //servoFlag.write(90);
+    
+    toStageA0();
 }
 
 
@@ -929,15 +937,15 @@ void toBooty1() {
 void retrieveBooty() {
     Serial2.println("D:RETRIEVE_BOOTY");
       
-    motor_booty->setSpeed(100);
-    motor_booty->run(FORWARD);
+    motorBooty->setSpeed(100);
+    motorBooty->run(FORWARD);
     delay(1500);
     
-    motor_booty->setSpeed(100);
-    motor_booty->run(BACKWARD);
-    delay(2000);
+    motorBooty->setSpeed(100);
+    motorBooty->run(BACKWARD);
+    delay(1600);
     
-    motor_booty->run(RELEASE);
+    motorBooty->run(RELEASE);
 }
 
 
@@ -990,9 +998,9 @@ void toFlag() {
 void raiseFlag() {
     Serial2.println("D:RAISE_FLAG");
     
-    while(digitalRead(START_BUTTON)) {
-        delay(100);
-    }
+    Serial2.println("D:Single coil steps");
+    motorStepper->step(100, FORWARD, SINGLE);
+    motorStepper->step(100, BACKWARD, SINGLE);
 }
 
 
@@ -1182,7 +1190,6 @@ void toStageC1() {
 
 void stageC() {
     Serial2.println("D:STAGE_C");
-    
 }
 
 
