@@ -184,7 +184,16 @@ void loop() {
     //delay(300);
     //servoFlag.write(90);
     
-    toStageA0();
+    toStageA1();
+    fromStageA1();
+    toCenterOfCourse();
+    toStageB0();
+    toBooty0();
+    retrieveBooty();
+    toFlag();
+    raiseFlag();
+    toShip();
+    toStageC0();
 }
 
 
@@ -554,11 +563,13 @@ void toCenterOfCourse() {
     }
     
     while(rangefinder4 <= 17) {
+        Serial2.print("D:here");
         moveForward(255);
         readRangefinders(4, 50);
     }
     
     while(rangefinder4 > 23) {
+        Serial2.print("D:there");          
         moveForward(127);
         readRangefinders(4, 50);
     }
@@ -619,20 +630,20 @@ void toStageB0() {
         
         // Delay for new range data
         readRangefinders(1, 20);
-        readRangefinders(2, 20);
-        readRangefinders(4, 50);
+        readRangefinders(2, 50);
         
-        while(rangefinder4 < 23) {
+        if(rangefinder4 < 23) {
             moveBackward(255);
-            readRangefinders(4, 50);
-            moveLeft(255);
-            delay(50);
+        } else if(rangefinder4 > 23) {
+            moveForward(255);
         }
+        
+        readRangefinders(4, 50);
+        moveLeft(255);
     }
     
     moveLeft(127);
     delay(100);
-    stopRobot();
     
     while(!microswitch3) {
         moveLeft(127);
@@ -641,6 +652,7 @@ void toStageB0() {
         delay(40);
         readMicroswitches();
     }
+    moveLeft(127);
     
     readMicroswitches();
     readRangefinders(5, 250);
@@ -675,15 +687,16 @@ void toStageB1() {
         
         // Delay for new range data
         readRangefinders(0, 20);
-        readRangefinders(3, 20);
-        readRangefinders(4, 50);
+        readRangefinders(3, 50);
         
-        while(rangefinder4 < 23) {
+        if(rangefinder4 < 23) {
             moveBackward(255);
-            readRangefinders(4, 50);
-            moveRight(255);
-            delay(50);
+        } else if(rangefinder4 > 23) {
+            moveForward(255);
         }
+        
+        readRangefinders(4, 50);
+        moveRight(255);
     }
     
     moveRight(127);
@@ -691,9 +704,11 @@ void toStageB1() {
     stopRobot();
     
     while(!microswitch2) {
-        moveBackward(65);
+        moveBackward(127);
         readMicroswitches();
     }
+    
+    moveRight(127);
     
     readMicroswitches();
     readRangefinders(5, 250);
@@ -733,14 +748,13 @@ void toBooty0() {
     
     // Move towards front wall
     moveForward(255);
-    while(rangefinder4 > 16) {
+    while(rangefinder4 >= 15) {
         readRangefinders(4, 50);
     }
     
     // Straighten up against wall
     moveLeft(127);
     delay(500);
-    stopRobot();
     
     // Move right towards chest
     moveRight(255);
@@ -750,21 +764,15 @@ void toBooty0() {
     
     // FIXME: Verify distances on new sensors
     while((rangefinder0 <= 16) && (rangefinder3 <= 16)) {
-        while(rangefinder4 < 15) {
+        if(rangefinder4 < 14) {
             moveBackward(127);
             delay(50);
-            moveRight(127);
-            
-            readRangefinders(4, 50);
-        }
-        
-        while(rangefinder4 > 15) {
+        } else if(rangefinder4 > 14) {
             moveForward(127);
             delay(50);
-            moveRight(127);
-            
-            readRangefinders(4, 50);
         }
+        
+        moveRight(127);
         
         if((rangefinder0 + rangefinder2) > (rangefinder1 + rangefinder3)) {
             turnLeft(127);
@@ -779,27 +787,22 @@ void toBooty0() {
     
     // Slow down when near chest
     int enough = 1;
-    while((abs((rangefinder0 + rangefinder3) - (rangefinder1 + rangefinder2)) <= 1)/* || (enough > 0)*/) {
+    while((abs((rangefinder0 + rangefinder3) - (rangefinder1 + rangefinder2)) <= 1)) {
         if(abs((rangefinder0 + rangefinder3) - (rangefinder1 + rangefinder2)) <= 1) {
             enough--;
         }
         
-        while(rangefinder4 < 15) {
+        while(rangefinder4 < 14) {
             moveBackward(63);
-            delay(50);
-            stopRobot();
-            
             readRangefinders(4, 50);
         }
         
-        while(rangefinder4 > 15) {
+        while(rangefinder4 > 14) {
             moveForward(63);
-            delay(50);
-            stopRobot();
-            
             readRangefinders(4, 50);
         }
         
+        moveLeft(63);
         readRangefinders(5, 250);
         
         // Fix if crooked
@@ -937,15 +940,16 @@ void toBooty1() {
 void retrieveBooty() {
     Serial2.println("D:RETRIEVE_BOOTY");
       
-    motorBooty->setSpeed(100);
+    motorBooty->setSpeed(255);
     motorBooty->run(FORWARD);
-    delay(1500);
+    delay(1000);
     
-    motorBooty->setSpeed(100);
+    motorBooty->setSpeed(255);
     motorBooty->run(BACKWARD);
-    delay(1600);
+    delay(1400);
     
     motorBooty->run(RELEASE);
+    Serial2.println("D:here");
 }
 
 
@@ -1014,10 +1018,10 @@ void toShip() {
      
     moveBackward(255);
     
-    int enough = 0;
-    while(rangefinder4 < 45 || (enough < 1)) {
-        if(rangefinder4 > 45) {
-            enough++;
+    int enough = 1;
+    while(rangefinder4 < 47 || (enough > 2)) {
+        if(rangefinder4 > 47) {
+            enough--;
         }
 
         readRangefinders(4, 50);
@@ -1248,7 +1252,7 @@ void readRangefinders(int number, int wait) {
         digitalWrite(RANGEFINDER_4_RX, LOW);
         delay(wait);
         
-        rangefinder0 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
+        rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
         Serial2.print("R4:");
         Serial2.println(rangefinder4);
     }

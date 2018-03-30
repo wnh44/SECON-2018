@@ -25,8 +25,12 @@
 #define RANGEFINDER_3 A11
 #define RANGEFINDER_4 A12
 
-// Rangefinder0 RX pin
-#define RANGEFINDER_0_RX 24
+// Rangefinder RX
+#define RANGEFINDER_0_RX 23
+#define RANGEFINDER_1_RX 25
+#define RANGEFINDER_2_RX 27
+#define RANGEFINDER_3_RX 29
+#define RANGEFINDER_4_RX 31
 
 // Start Button
 #define START_BUTTON 2
@@ -84,45 +88,48 @@ void loop() {
     // Rangefinders //
     //////////////////
     
-    // Rangefinder Values
-    rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
-    rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
-    rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-    rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-    rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
+    digitalWrite(RANGEFINDER_0_RX, HIGH);        
+    delay(30);
+    digitalWrite(RANGEFINDER_0_RX, LOW);
+    delay(50);
     
-    // Rangefinder 0
-    Serial.print("RF0: ");
-    sprintf(formattedOutput, "%03d", rangefinder0);
-    Serial.print(formattedOutput);
+    rangefinder0 = (analogRead(RANGEFINDER_0) - 3) / 2 + 3;
     Serial2.print("R0:");
     Serial2.println(rangefinder0);
     
-    // Rangefinder 1
-    Serial.print("  RF1: ");
-    sprintf(formattedOutput, "%03d", rangefinder1);
-    Serial.print(formattedOutput);
+    digitalWrite(RANGEFINDER_1_RX, HIGH);        
+    delay(30);
+    digitalWrite(RANGEFINDER_1_RX, LOW);
+    delay(50);
+    
+    rangefinder1 = (analogRead(RANGEFINDER_1) - 3) / 2 + 3;
     Serial2.print("R1:");
     Serial2.println(rangefinder1);
     
-    // Rangefinder 2
-    Serial.print("  RF2: ");
-    sprintf(formattedOutput, "%03d", rangefinder2);
-    Serial.print(formattedOutput);
+    digitalWrite(RANGEFINDER_2_RX, HIGH);        
+    delay(30);
+    digitalWrite(RANGEFINDER_2_RX, LOW);
+    delay(50);
+
+    rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
     Serial2.print("R2:");
     Serial2.println(rangefinder2);
     
-    // Rangefinder 3
-    Serial.print("  RF3: ");
-    sprintf(formattedOutput, "%03d", rangefinder3);
-    Serial.print(formattedOutput);
+    digitalWrite(RANGEFINDER_3_RX, HIGH);        
+    delay(30);
+    digitalWrite(RANGEFINDER_3_RX, LOW);
+    delay(50);
+
+    rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
     Serial2.print("R3:");
     Serial2.println(rangefinder3);
     
-    // Rangefinder4
-    Serial.print("  RF4: ");
-    sprintf(formattedOutput, "%03d", rangefinder4);
-    Serial.print(formattedOutput);
+    digitalWrite(RANGEFINDER_4_RX, HIGH);        
+    delay(30);
+    digitalWrite(RANGEFINDER_4_RX, LOW);
+    delay(50);
+
+    rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
     Serial2.print("R4:");
     Serial2.println(rangefinder4);
     
@@ -165,12 +172,6 @@ void loop() {
     // Start button
     Serial.print("   SB: ");
     Serial.println(startButton);
-    
-    // Inititate rangefinder sequence and wait for more values
-    digitalWrite(RANGEFINDER_0_RX, 1);
-    delay(35);
-    digitalWrite(RANGEFINDER_0_RX, 0);
-    delay(300);
     
     Serial2.print("D:Debug test ");
     Serial2.println(millis());
