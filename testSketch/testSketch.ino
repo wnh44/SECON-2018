@@ -8,6 +8,9 @@
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include <Servo.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 
 /////////////////////
@@ -38,9 +41,12 @@
 #define START_BUTTON 2
 
 // Servos
-#define SERVO_FLAG 46
+#define SERVO_FLAG 11
 #define SERVO_STAGE_B0 9
 #define SERVO_STAGE_B1 10
+
+// OLED Screen
+#define OLED_RESET 3
 
 
 //////////////////////
@@ -48,6 +54,12 @@
 //////////////////////
 
 int locations[3] = {0, 0, 0};
+
+int servoB0_raised = 10;
+int servoB0_pressed = 140;
+
+int servoB1_raised = 180;
+int servoB1_pressed = 40;
 
 
 ///////////////////////////N
@@ -95,12 +107,24 @@ Adafruit_StepperMotor *motorStepper = AFMS_top.getStepper(200, 2);
 
 // Servo Motors
 Servo servoFlag;
+Servo servoStageB0;
+Servo servoStageB1;
+
+////////////////////
+// OLED Variables //
+////////////////////
+
+Adafruit_SSD1306 display(OLED_RESET);
+#define ZERO 48
+#define ONE 49
+
 
 ////////////////////////////////
 // Pi<->Mega Serial Variables //
 ////////////////////////////////
 
 char serialMessage[10];
+int temp = 0;
 
 
 /////////////////////////
@@ -132,6 +156,12 @@ void setup() {
     // Initialize Start Button Pin (also initializes restart)
     pinMode(START_BUTTON, INPUT_PULLUP);
     
+    // Initialize OLED
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    display.display();
+    delay(1000);
+    display.clearDisplay();
+    
     // Initialize MotorShields
     AFMS_bottom.begin();
     AFMS_top.begin();
@@ -158,13 +188,40 @@ void setup() {
     motor3->run(RELEASE);
     motorBooty->run(RELEASE);
     
-    // Attach servos to pins
-    //servoFlag.attach(SERVO_FLAG);
-    //servoFlag.write(90);
+    // Attach servos to pins and initialize
+    servoFlag.attach(SERVO_FLAG);
+    servoFlag.writeMicroseconds(1500);
+    
+    servoStageB0.attach(SERVO_STAGE_B0);
+    servoStageB0.write(servoB0_raised);
+    
+    servoStageB1.attach(SERVO_STAGE_B1);
+    servoStageB1.write(servoB1_raised);
 
     // Initial Readings
     readRangefinders(5, 300);
     readMicroswitches();
+    
+    ////////////////////////////////
+    // Adjustment for Booty Motor //
+    ////////////////////////////////
+    
+    // /* Uncomment this line to enable
+    
+    // Tighten cable
+    motorBooty->run(BACKWARD);
+    
+    // Loosen Cable
+    //motorBooty->run(FORWARD);
+    
+    motorBooty->setSpeed(255);
+    delay(100);
+    motorBooty->run(RELEASE);
+    motorBooty->setSpeed(0);
+    // Uncomment this line to enable */
+    
+    Serial.println("Setup complete.");
+    Serial2.println("D: Setup complete.");
 }
 
 
@@ -176,24 +233,37 @@ void setup() {
 void loop() {
     Serial2.println("D:LOOP");
     
-    while(digitalRead(START_BUTTON)) {
-        delay(100);
+    waitForStart();
+    
+    decodeLED();
+    if(locations[0] == 0) {
+        toStageA0();
+        fromStageA0();
+    } else if(locations[0] == 1) {
+        toStageA1();
+        fromStageA1();
     }
-    
-    //servoFlag.write(0);
-    //delay(300);
-    //servoFlag.write(90);
-    
-    toStageA1();
-    fromStageA1();
     toCenterOfCourse();
-    toStageB0();
-    toBooty0();
+    
+    if(locations[1] == 0) {
+        toStageB0();
+        stageB0();
+        toBooty0();
+    } else if(locations[1] == 1) {
+        toStageB1();
+        stageB1();
+        toBooty1();
+    } 
     retrieveBooty();
     toFlag();
     raiseFlag();
     toShip();
-    toStageC0();
+    
+    if(locations[2] == 0) {
+        toStageC0();
+    } else if(locations[2] == 1) {
+        toStageC1();
+    } 
 }
 
 
@@ -207,7 +277,8 @@ void waitForStart() {
     Serial2.println("D:WAIT_FOR_START");
     
     while(digitalRead(START_BUTTON)) {
-        delay(100);
+        readRangefinders(5, 300);
+        readMicroswitches();
     }
 }
 
@@ -227,6 +298,7 @@ void decodeLED() {
         locations[i] = random(0, 2);
     }
     
+    //Print to GUI
     Serial2.print("D:Locations - {");
     Serial2.print(locations[0]);
     Serial2.print(", ");
@@ -234,7 +306,23 @@ void decodeLED() {
     Serial2.print(", ");
     Serial2.print(locations[2]);
     Serial2.println("}");
-    delay(100);
+    
+    //Print to display
+    display.setTextSize(4);
+    display.setTextColor(WHITE);
+    display.setCursor(32, 1);
+    display.clearDisplay();
+    
+    if(locations[0] == 0) display.write(ZERO);
+    else if(locations[0] == 1) display.write(ONE);
+    
+    if(locations[1] == 0) display.write(ZERO);
+    else if(locations[1] == 1) display.write(ONE);
+    
+    if(locations[2] == 0) display.write(ZERO);
+    else if(locations[2] == 1) display.write(ONE);
+    
+    display.display();
 }
 
 
@@ -505,8 +593,9 @@ void toCenterOfCourse() {
             // Correct robot to left while waiting on sensors (might as well multitask)
             moveLeft(255);
             readRangefinders(5, 100);
-            moveForward(255);
+            turnRight(155);
             delay(150);
+            moveForward(255);
 
             rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
             Serial2.print("R2:");
@@ -724,6 +813,11 @@ void toStageB1() {
 void stageB0() {
     Serial2.println("D:STAGE_B");
     
+    servoStageB0.write(servoB0_pressed);
+    //Serial2.println("D: Pressed: %d", servoB0_pressed);
+    
+    delay(1300);
+    servoStageB0.write(servoB0_raised);
 }
 
 
@@ -735,6 +829,11 @@ void stageB0() {
 void stageB1() {
     Serial2.println("D:STAGE_B");
     
+    servoStageB1.write(servoB1_pressed);
+    //Serial2.println("D: Pressed: %d", servoB1_pressed);
+    
+    delay(1300);
+    servoStageB1.write(servoB1_raised);
 }
 
 
@@ -758,12 +857,12 @@ void toBooty0() {
     
     // Move right towards chest
     moveRight(255);
-    delay(1000);
+    delay(1500);
     
     readRangefinders(5, 250);
     
     // FIXME: Verify distances on new sensors
-    while((rangefinder0 <= 16) && (rangefinder3 <= 16)) {
+    while((rangefinder0 <= 14) && (rangefinder3 <= 14)) {
         if(rangefinder4 < 14) {
             moveBackward(127);
             delay(50);
@@ -850,7 +949,7 @@ void toBooty1() {
     
     // Move right towards chest
     moveLeft(255);
-    delay(1000);
+    delay(1500);
     
     readRangefinders(5, 250);
     
@@ -942,11 +1041,11 @@ void retrieveBooty() {
       
     motorBooty->setSpeed(255);
     motorBooty->run(FORWARD);
-    delay(1000);
+    delay(1400);
     
     motorBooty->setSpeed(255);
     motorBooty->run(BACKWARD);
-    delay(1400);
+    delay(1800);
     
     motorBooty->run(RELEASE);
     Serial2.println("D:here");
@@ -987,6 +1086,18 @@ void toFlag() {
         }
         readRangefinders(2, 20);
         readRangefinders(3, 50);
+        readMicroswitches();
+    }
+    
+    while(!microswitch0 || !microswitch1) {
+        if(microswitch0) {
+            turnLeft(127);
+        } else if(microswitch1) {
+            turnRight(127);
+        } else {
+            moveForward(255);
+        }
+        readMicroswitches();
     }
     
     stopRobot();
@@ -1002,9 +1113,13 @@ void toFlag() {
 void raiseFlag() {
     Serial2.println("D:RAISE_FLAG");
     
-    Serial2.println("D:Single coil steps");
-    motorStepper->step(100, FORWARD, SINGLE);
     motorStepper->step(100, BACKWARD, SINGLE);
+    
+    servoFlag.writeMicroseconds(2000);
+    delay(6200);
+    servoFlag.writeMicroseconds(1500);
+    
+    motorStepper->step(100, FORWARD, SINGLE);
 }
 
 
@@ -1026,6 +1141,78 @@ void toShip() {
 
         readRangefinders(4, 50);
     }
+    
+    stopRobot();
+    readRangefinders(5, 300);
+    
+    // Sums for centering in course
+    int sum03 = rangefinder0 + rangefinder3;
+    int sum12 = rangefinder1 + rangefinder2;
+    
+    // Sums for fixing angle
+    int sum02 = rangefinder0 + rangefinder2;
+    int sum13 = rangefinder1 + rangefinder3;
+    
+    // Make it happen captain
+    while(abs(sum03 - sum12) > 1) {
+        while(sum03 - sum12 > 1) {
+            moveLeft(255);
+            delay(250);
+            stopRobot();
+            readRangefinders(5, 250);
+            
+            // Sums for centering in course
+            sum03 = rangefinder0 + rangefinder3;
+            sum12 = rangefinder1 + rangefinder2;
+        }
+        
+        while(sum12 - sum03 > 1) {
+            moveRight(255);
+            delay(250);
+            stopRobot();
+            readRangefinders(5, 250);
+            
+            // Sums for centering in course
+            sum03 = rangefinder0 + rangefinder3;
+            sum12 = rangefinder1 + rangefinder2;
+        }
+        
+        while(abs(sum02 - sum13) > 1) {
+            while(sum02 - sum13 > 1) {
+                turnLeft(55);
+                delay(250);
+                stopRobot();
+                readRangefinders(5, 250);
+                        
+                // Sums for fixing angle
+                sum02 = rangefinder0 + rangefinder2;
+                sum13 = rangefinder1 + rangefinder3;
+            }
+            
+            while(sum13 - sum02 > 1) {
+                turnRight(55);
+                delay(250);
+                stopRobot();
+                readRangefinders(5, 250);
+                        
+                // Sums for fixing angle
+                sum02 = rangefinder0 + rangefinder2;
+                sum13 = rangefinder1 + rangefinder3;
+            }
+            
+            readRangefinders(5, 300);
+            
+            // Sums for centering in course
+            sum03 = rangefinder0 + rangefinder3;
+            sum12 = rangefinder1 + rangefinder2;
+            
+            // Sums for fixing angle
+            sum02 = rangefinder0 + rangefinder2;
+            sum13 = rangefinder1 + rangefinder3;
+        }
+    }
+    
+    moveBackward(255);
     
     while(!microswitch2 || !microswitch3) {
         if(microswitch2) {
@@ -1082,7 +1269,7 @@ void toStageC0() {
         readMicroswitches();
     }
 
-    // Slow down when ~2 in away while maintaining contact with back wall
+    // Slow down when ~2 in away while maintaining contact with wall
     while(rangefinder1 < 35) {
         Serial2.println("D:close");
         while(!microswitch2 || !microswitch3) {
@@ -1152,7 +1339,7 @@ void toStageC1() {
         readMicroswitches();
     }
 
-    // Slow down when ~2 in away while maintaining contact with back wall
+    // Slow down when ~2 in away while maintaining contact with wall
     while(rangefinder0 < 35) {
         Serial2.println("D:close");
         while(!microswitch2 || !microswitch3) {
