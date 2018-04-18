@@ -49,6 +49,36 @@
 #define OLED_RESET 3
 
 
+/////////////////////
+// FSM Definitions //
+/////////////////////
+
+enum states {
+    WAIT_FOR_START,
+    DECODE_LED,
+    TO_STAGE_A0,
+    TO_STAGE_A1,
+    STAGE_A,
+    FROM_STAGE_A0,
+    FROM_STAGE_A1,
+    TO_CENTER_OF_COURSE,
+    TO_STAGE_B0,
+    TO_STAGE_B1,
+    STAGE_B0,
+    STAGE_B1,
+    TO_BOOTY0,
+    TO_BOOTY1,
+    RETRIEVE_BOOTY,
+    TO_FLAG,
+    RAISE_FLAG,
+    TO_SHIP,
+    TO_STAGE_C0,
+    TO_STAGE_C1,
+    STAGE_C
+};
+states state = WAIT_FOR_START;
+
+
 //////////////////////
 // Course Variables //
 //////////////////////
@@ -144,9 +174,6 @@ void setup() {
     Serial.begin(9600);
     Serial2.begin(57600);
     
-    // Set Interrupts for Motor Encoders
-    //attachInterrupt(5, motor0_encoder_ISR, CHANGE);
-    
     // Initialize Microswitch Pins
     pinMode(MICROSWITCH_0, INPUT_PULLUP);
     pinMode(MICROSWITCH_1, INPUT_PULLUP);
@@ -206,7 +233,9 @@ void setup() {
     // Adjustment for Booty Motor //
     ////////////////////////////////
     
-    // /* Uncomment this line to enable
+    // This tightens/loosens the booty motor on Arduino reset
+    
+    /* Comment this line to enable
     
     // Tighten cable
     motorBooty->run(BACKWARD);
@@ -218,7 +247,7 @@ void setup() {
     delay(100);
     motorBooty->run(RELEASE);
     motorBooty->setSpeed(0);
-    // Uncomment this line to enable */
+    // */
     
     Serial.println("Setup complete.");
     Serial2.println("D: Setup complete.");
@@ -276,6 +305,8 @@ void loop() {
 void waitForStart() {
     Serial2.println("D:WAIT_FOR_START");
     
+    // Insert code for positioning signal
+    
     while(digitalRead(START_BUTTON)) {
         readRangefinders(5, 300);
         readMicroswitches();
@@ -285,8 +316,7 @@ void waitForStart() {
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Function: decodeLED()                                                            //
-// Description: Decodes the LED. For now this function just returns a "random"      //
-//              array until the LED is implemented.                                 //
+// Description: Decodes the LED, prints results on LCD, and assigns locations       //
 //////////////////////////////////////////////////////////////////////////////////////
 
 void decodeLED() {
@@ -332,7 +362,7 @@ void decodeLED() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void toStageA0() {
-    Serial2.println("D:TO_STAGE_A");
+    Serial2.println("D:TO_STAGE_A0");
     readMicroswitches();
     
     moveBackward(255);
@@ -495,7 +525,7 @@ void stageA() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void fromStageA0() {
-    Serial2.println("D:FROM_STAGE_A");
+    Serial2.println("D:FROM_STAGE_A0");
 
     // Move right towards center
     while(rangefinder1 - rangefinder0 >= 3) {
@@ -539,7 +569,7 @@ void fromStageA0() {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void fromStageA1() {
-    Serial2.println("D:FROM_STAGE_A");
+    Serial2.println("D:FROM_STAGE_A1");
    
     // Move left towards center
     while(rangefinder0 - rangefinder1 >= 3) {
@@ -1048,7 +1078,6 @@ void retrieveBooty() {
     delay(1800);
     
     motorBooty->run(RELEASE);
-    Serial2.println("D:here");
 }
 
 
@@ -1229,8 +1258,8 @@ void toShip() {
 
 
 //////////////////////////////////////////////////////////////////////////////////////
-// Function: toStageA0()                                                            //
-// Description: Navigates to left stage A                                           //
+// Function: toStageC0()                                                            //
+// Description: Navigates to left stage C                                           //
 //////////////////////////////////////////////////////////////////////////////////////
 
 void toStageC0() {
