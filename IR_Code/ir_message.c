@@ -1,6 +1,6 @@
 #include "stdio.h"
 #include <stdlib.h>
-#include "ir-slinger/irslinger.h"		//Library to send IR message
+#include "irslinger.h"		//Library to send IR message
 #include "PIGPIO/pigpio.h"
 #include <time.h>
 #include <math.h>
@@ -150,7 +150,7 @@ void game()
 			sendIR(coordinates); //send coordinates code
 			if(!startedCounting)
 			{
-				finish= (2)*CLOCKS_PER_SEC + clock();  //start the timer
+				finish= (60)*CLOCKS_PER_SEC + clock();  //start the timer
 				startedCounting=1;
 			}
 			else

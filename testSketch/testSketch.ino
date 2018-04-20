@@ -38,7 +38,7 @@
 #define RANGEFINDER_4_RX 31
 
 // Start Button
-#define START_BUTTON 2
+#define START_BUTTON 1
 
 // Servos
 #define SERVO_FLAG 11

@@ -2,6 +2,7 @@
 // Description: This is the current version of the SECON2018 robot.
 //              Hopefully it"s not broken...
 
+
 ///////////////
 // Libraries //
 ///////////////
@@ -19,17 +20,17 @@
 /////////////////////
 
 // Microswitches
-#define MICROSWITCH_0 4
-#define MICROSWITCH_1 5
-#define MICROSWITCH_2 6
-#define MICROSWITCH_3 7
+#define MICROSWITCH_0    4
+#define MICROSWITCH_1    5
+#define MICROSWITCH_2    6
+#define MICROSWITCH_3    7
 
 // Ultrasonic Rangefinders
-#define RANGEFINDER_0 A8
-#define RANGEFINDER_1 A9
-#define RANGEFINDER_2 A10
-#define RANGEFINDER_3 A11
-#define RANGEFINDER_4 A12
+#define RANGEFINDER_0    A8
+#define RANGEFINDER_1    A9
+#define RANGEFINDER_2    A10
+#define RANGEFINDER_3    A11
+#define RANGEFINDER_4    A12
 
 // Rangefinder RX
 #define RANGEFINDER_0_RX 23
@@ -39,15 +40,19 @@
 #define RANGEFINDER_4_RX 31
 
 // Start Button
-#define START_BUTTON 2
+#define START_BUTTON     1
 
 // Servos
-#define SERVO_FLAG 11
-#define SERVO_STAGE_B0 9
-#define SERVO_STAGE_B1 10
+#define SERVO_FLAG       11
+#define SERVO_STAGE_B0   9
+#define SERVO_STAGE_B1   10
 
 // OLED Screen
-#define OLED_RESET 3
+#define OLED_RESET       3
+
+// IR Reciever
+#define IRpin_PIN        PINE
+#define IRpin            4
 
 
 /////////////////////
@@ -114,6 +119,22 @@ int microswitch2 = 0;
 int microswitch3 = 0;
 
 
+///////////////////////////
+// IR Reciever Variables //
+///////////////////////////
+
+#define MAXPULSE 35000
+#define RESOLUTION 25 
+
+uint16_t pulses[10][2]; 
+uint8_t currentPulse = 0;
+
+char coordinates[10] = {48, 48, 48, 48, 48, 48, 48, 48, 48, 48};
+char prevCoordinates[10] = {48, 48, 48, 48, 48, 48, 48, 48, 48, 48};
+
+uint8_t routeCode = 0;
+
+
 /////////////////////
 // Motor Variables //
 /////////////////////
@@ -140,6 +161,7 @@ Adafruit_StepperMotor *motorStepper = AFMS_top.getStepper(200, 2);
 Servo servoFlag;
 Servo servoStageB0;
 Servo servoStageB1;
+
 
 ////////////////////
 // OLED Variables //
@@ -229,6 +251,7 @@ void setup() {
     // Initial Readings
     readRangefinders(5, 300);
     readMicroswitches();
+    
     
     ////////////////////////////////
     // Adjustment for Booty Motor //
@@ -368,6 +391,22 @@ void waitForStart() {
         readMicroswitches();
     }
     
+    readMicroswitches();
+    moveBackward(255);
+    
+    // Move to back wall
+    while(!microswitch2 || !microswitch3) {
+        if(microswitch2) {
+            turnLeft(127);
+        } else if(microswitch3) {
+            turnRight(127);
+        } else {
+            moveBackward(255);
+        }
+        readMicroswitches();
+    }
+    stopRobot();
+    
     state = DECODE_LED;
 }
 
@@ -380,10 +419,66 @@ void waitForStart() {
 void decodeLED() {
     Serial2.println("D:DECODE_LED");
     
-    // FIXME: Returns a random number for now
-    randomSeed(analogRead(A14));
-    for(int i = 0; i < 3; i++) {
-        locations[i] = random(0, 2);
+    boolean messageComplete = false;
+    
+    while(!messageComplete) {
+        uint16_t highPulse, lowPulse;
+        highPulse = lowPulse = 0;
+        
+        // Pin is high
+        while(IRpin_PIN & (1 << IRpin)) {
+            highPulse++;
+            delayMicroseconds(RESOLUTION);
+            
+            // Max pulse time exceeded
+            if((highPulse >= MAXPULSE) && (currentPulse != 0)) {
+                messageComplete == true;
+                
+                for (uint8_t i = 0; i < currentPulse; i++) {
+                    if(prevCoordinates[i] != coordinates[i]) messageComplete = false;
+                    prevCoordinates[i] = coordinates[i];
+                    
+                    if(pulses[i][0] * RESOLUTION < 1000) coordinates[i] = 48;
+                    else if(pulses[i][0] * RESOLUTION < 2000) coordinates[i] = 49;
+                    else if(pulses[i][0] * RESOLUTION < 10000) coordinates[i] = 115;
+                    else coordinates[i] = 109;
+                }
+                Serial.println(coordinates);
+                
+                currentPulse = 0;
+                return;
+            }
+        }
+        
+        pulses[currentPulse][0] = highPulse;
+        
+        // Pin is low
+        while(!(IRpin_PIN & _BV(IRpin))) {
+            lowPulse++;
+            delayMicroseconds(RESOLUTION);
+            
+            // Max pulse time exceeded
+            if((lowPulse >= MAXPULSE) && (currentPulse != 0)) {
+                messageComplete == true;
+                
+                for (uint8_t i = 0; i < currentPulse; i++) {
+                    if(prevCoordinates[i] != coordinates[i]) messageComplete = false;
+                    prevCoordinates[i] = coordinates[i];
+                    
+                    if(pulses[i][0] * RESOLUTION < 1000) coordinates[i] = 48;
+                    else if(pulses[i][0] * RESOLUTION < 2000) coordinates[i] = 49;
+                    else if(pulses[i][0] * RESOLUTION < 10000) coordinates[i] = 115;
+                    else coordinates[i] = 109;
+                }
+                Serial.println(coordinates);
+                
+                currentPulse = 0;
+                return;
+            }
+        }
+        
+        pulses[currentPulse][1] = lowPulse;
+        currentPulse++;
     }
     
     //Print to GUI
@@ -398,17 +493,17 @@ void decodeLED() {
     //Print to display
     display.setTextSize(4);
     display.setTextColor(WHITE);
-    display.setCursor(32, 1);
+    display.setCursor(64, 1);
     display.clearDisplay();
     
-    if(locations[0] == 0) display.write(ZERO);
-    else if(locations[0] == 1) display.write(ONE);
+    routeCode = 0;
+    if(locations[0] == 1) routeCode += 4;
+    if(locations[1] == 1) routeCode += 2;
+    if(locations[2] == 1) routeCode += 1;
     
-    if(locations[1] == 0) display.write(ZERO);
-    else if(locations[1] == 1) display.write(ONE);
-    
-    if(locations[2] == 0) display.write(ZERO);
-    else if(locations[2] == 1) display.write(ONE);
+    // Add 48 to convert to ASCII
+    display.write(routeCode + 48);
+    display.write(46);
     
     display.display();
     
@@ -617,11 +712,25 @@ void fromStageA0() {
 
     // Slow down when ~2 in away
     while(rangefinder1 != rangefinder0) {
+        readMicroswitches();
+        
+        // Moaintain contact with back wall
         while(!microswitch2 || !microswitch3) {
-            moveBackward(127);
+            if(microswitch2) {
+                turnLeft(127);
+            } else if(microswitch3) {
+                turnRight(127);
+            } else {
+                moveBackward(255);
+            }
             readMicroswitches();
         }
-        moveRight(32);
+        
+        if(rangefinder0 > rangefinder1) {
+            moveLeft(127);
+        } else  {
+            moveRight(127);
+        }
         
         readRangefinders(0, 20);
         readRangefinders(1, 50);
@@ -629,6 +738,7 @@ void fromStageA0() {
     }
     
     // FIXME: Add check to prevent missing center
+    // ^^^^^ Done I think
     
     // For now
     stopRobot();
@@ -659,19 +769,34 @@ void fromStageA1() {
     }
 
     // Slow down when ~2 in away
-    while(rangefinder0 != rangefinder1) {
+    while(rangefinder1 != rangefinder0) {
+        readMicroswitches();
+        
+        // Moaintain contact with back wall
         while(!microswitch2 || !microswitch3) {
-            moveBackward(127);
+            if(microswitch2) {
+                turnLeft(127);
+            } else if(microswitch3) {
+                turnRight(127);
+            } else {
+                moveBackward(255);
+            }
             readMicroswitches();
         }
-        moveLeft(32);
-         
+        
+        if(rangefinder0 > rangefinder1) {
+            moveLeft(127);
+        } else  {
+            moveRight(127);
+        }
+        
         readRangefinders(0, 20);
         readRangefinders(1, 50);
         readMicroswitches();
     }
     
     // FIXME: Add check to prevent missing center
+    // ^^^^^ Done I think
     
     // For now
     stopRobot();
@@ -692,125 +817,16 @@ void toCenterOfCourse() {
     delay(4700); // Probably necessary
     readRangefinders(5, 250);
     
-    // Navigate towards chest
-    while(rangefinder4 >= 17) {        
-        int leftSum = rangefinder0 + rangefinder3;
-        int rightSum = rangefinder1 + rangefinder2;
-        
-        while((leftSum - rightSum) >= 4) {
-            // Correct robot to left while waiting on sensors (might as well multitask)
-            moveLeft(255);
-            readRangefinders(5, 100);
-            turnRight(155);
-            delay(150);
-            moveForward(255);
-
-            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-            Serial2.print("R2:");
-            Serial2.println(rangefinder2);
-        
-            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-            Serial2.print("R3:");
-            Serial2.println(rangefinder3);
-        
-            rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-            Serial2.print("R4:");
-            Serial2.println(rangefinder4);
-
-            // Update sums and calculate again
-            leftSum = rangefinder0 + rangefinder3;
-            rightSum = rangefinder1 + rangefinder2;
-        }
-        
-        while((rightSum - leftSum) >= 4) {
-            // Correct robot to right while waiting on sensors (nobody likes timewasters)
-            moveRight(255);
-            readRangefinders(5, 100);
-            moveForward(255);
-            delay(150);
-
-            rangefinder2 = (analogRead(RANGEFINDER_2) - 3) / 2 + 3;
-            Serial2.print("R2:");
-            Serial2.println(rangefinder2);
-        
-            rangefinder3 = (analogRead(RANGEFINDER_3) - 3) / 2 + 3;
-            Serial2.print("R3:");
-            Serial2.println(rangefinder3);
-        
-            rangefinder4 = (analogRead(RANGEFINDER_4) - 3) / 2 + 3;
-            Serial2.print("R4:");
-            Serial2.println(rangefinder4);
-
-            // Update sums and calculate again
-            leftSum = rangefinder0 + rangefinder3;
-            rightSum = rangefinder1 + rangefinder2;
-        }
-            
-        if((rangefinder0 + rangefinder2) > (rangefinder3 + rangefinder1)) {
-            turnLeft(255);
-        } else if((rangefinder0 + rangefinder2) < (rangefinder3 + rangefinder1)) {
-            turnRight(255);
-        }
-        
-        // Turn robot left or right while waiting on sensors (you know the drill)
-        
-        delay(100);
-        moveForward(255);
-        readRangefinders(5, 250);
-    }
+    int value1 = rangefinder4;
+    int value2 = rangefinder4;
+    int value3 = rangefinder4;
     
-    while(rangefinder4 <= 17) {
-        Serial2.print("D:here");
-        moveForward(255);
-        readRangefinders(4, 50);
-    }
-    
-    while(rangefinder4 > 23) {
-        Serial2.print("D:there");          
-        moveForward(127);
-        readRangefinders(4, 50);
-    }
-    
-    stopRobot();
-    
-    // This is a tweakable variable to ensure robot is in the center
-    int enough = 1;
-
-    // Straighten up in the center
-    while((abs((rangefinder0 + rangefinder2) - (rangefinder3 + rangefinder1)) <= 1) || (enough > 0)) {
-        Serial2.println("D:centering");
+    int filteredValue = (value1 + value2 + value3) / 3;
         
-        // Decrements enough variable if conditions are favorable
-        if(abs((rangefinder0 + rangefinder2) - (rangefinder3 + rangefinder1)) <= 1) {
-            enough--;
-        }
-
-        // Turns robot if needed
-        if((rangefinder0 + rangefinder2) > (rangefinder3 + rangefinder1)) {
-            turnLeft(63);
-        } else if((rangefinder0 + rangefinder2) < (rangefinder3 + rangefinder1)) {
-            turnRight(63);
-        }
-
-        // Always waiting on sensors...
-        delay(50);
-        stopRobot();
-        readRangefinders(5, 250);
-    }
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-// Function: toCenterofCourse()                                                     //
-// Description: Navigates to center of course                                       //
-//////////////////////////////////////////////////////////////////////////////////////
-
-void toCenterOfCourse() {
-    Serial2.println("D:TO_CENTER_OF_COURSE");
-    
-    moveForward(255);
-    delay(4700); // Probably necessary
-    readRangefinders(5, 250);
+    Serial2.print("D:Readings: {"); Serial2.print(value1);
+    Serial2.print(", "); Serial2.print(value2);
+    Serial2.print(", "); Serial2.print(value3);
+    Serial2.print("} Filtered: "); Serial2.println(filteredValue);
     
     // Navigate towards chest
     while(rangefinder4 >= 17) {        
@@ -879,16 +895,47 @@ void toCenterOfCourse() {
         readRangefinders(5, 250);
     }
     
-    while(rangefinder4 <= 17) {
-        Serial2.print("D:here");
+    value1 = value2;
+    value2 = value3;
+    value3 = rangefinder4;
+    
+    filteredValue = (value1 + value2 + value3) / 3;
+        
+    Serial2.print("D:Readings: {"); Serial2.print(value1);
+    Serial2.print(", "); Serial2.print(value2);
+    Serial2.print(", "); Serial2.print(value3);
+    Serial2.print("} Filtered: "); Serial2.println(filteredValue);
+    
+    while(filteredValue <= 17) {
         moveForward(255);
+        
         readRangefinders(4, 50);
+        value1 = value2;
+        value2 = value3;
+        value3 = rangefinder4;
+        
+        filteredValue = (value1 + value2 + value3) / 3;
+        
+        Serial2.print("D:Readings: {"); Serial2.print(value1);
+        Serial2.print(", "); Serial2.print(value2);
+        Serial2.print(", "); Serial2.print(value3);
+        Serial2.print("} Filtered: "); Serial2.println(filteredValue);
     }
     
-    while(rangefinder4 > 23) {
-        Serial2.print("D:there");          
+    while(filteredValue > 23) {
         moveForward(127);
+        
         readRangefinders(4, 50);
+        value1 = value2;
+        value2 = value3;
+        value3 = rangefinder4;
+        
+        filteredValue = (value1 + value2 + value3) / 3;
+        
+        Serial2.print("D:Readings: {"); Serial2.print(value1);
+        Serial2.print(", "); Serial2.print(value2);
+        Serial2.print(", "); Serial2.print(value3);
+        Serial2.print("} Filtered: "); Serial2.println(filteredValue);
     }
     
     stopRobot();
@@ -1475,7 +1522,7 @@ void toShip() {
         readMicroswitches();
     }
     
-    state = TO_STAGE_C;
+    state = TO_STAGE_C0;
 }
 
 
